@@ -64,7 +64,7 @@ func (s *Segment) SliceClone(axis int, start Measure, end Measure) *Segment {
 	return newSegment
 }
 
-type AxisSegments struct {
+type SplitSegments struct {
 	axis     int
 	segments []*Segment
 	mid      int
@@ -76,11 +76,11 @@ type AxisSegments struct {
 	max Measure
 }
 
-func (b *AxisSegments) Len() int {
+func (b *SplitSegments) Len() int {
 	return len(b.segments)
 }
 
-func (b *AxisSegments) Less(i, j int) bool {
+func (b *SplitSegments) Less(i, j int) bool {
 	if b.segments[i].Rect[b.axis][0] != b.segments[j].Rect[b.axis][0] {
 		return b.segments[i].Rect[b.axis][0].Smaller(b.segments[j].Rect[b.axis][0])
 	} else {
@@ -96,54 +96,67 @@ func (b *AxisSegments) Less(i, j int) bool {
 	}
 }
 
-func (b *AxisSegments) Swap(i, j int) {
+func (b *SplitSegments) Swap(i, j int) {
 	b.segments[i], b.segments[j] = b.segments[j], b.segments[i]
 }
 
-func NewSegments(axis int, segments []*Segment) *AxisSegments {
+func NewSplitSegments(segments []*Segment) *SplitSegments {
 	if len(segments) == 0 {
 		return nil
 	}
 
-	newAxisSegments := &AxisSegments{
-		axis:     axis,
+	splitAxis := 0
+	maxKeySize := 0
+	for axis, _ := range segments[0].Rect {
+		keyMap := mapset.NewSet()
+		for _, seg := range segments {
+			keyMap.Add(seg.Rect[axis][0])
+		}
+		keys := keyMap.ToSlice()
+		if len(keys) > maxKeySize {
+			splitAxis = axis
+			maxKeySize = len(keys)
+		}
+	}
+
+	newAxisSegments := &SplitSegments{
+		axis:     splitAxis,
 		segments: segments,
 	}
 
 	sort.Sort(newAxisSegments)
 	newAxisSegments.mid = len(newAxisSegments.segments) / 2
 	for newAxisSegments.mid > 0 {
-		if newAxisSegments.segments[newAxisSegments.mid-1].Rect[axis][0] ==
-			newAxisSegments.segments[newAxisSegments.mid].Rect[axis][0] {
+		if newAxisSegments.segments[newAxisSegments.mid-1].Rect[splitAxis][0] ==
+			newAxisSegments.segments[newAxisSegments.mid].Rect[splitAxis][0] {
 			newAxisSegments.mid -= 1
 			continue
 		}
 		break
 	}
 	newAxisSegments.midSeg = newAxisSegments.segments[newAxisSegments.mid]
-	newAxisSegments.min = newAxisSegments.midSeg.Rect[axis][0]
-	newAxisSegments.max = newAxisSegments.midSeg.Rect[axis][1]
+	newAxisSegments.min = newAxisSegments.midSeg.Rect[splitAxis][0]
+	newAxisSegments.max = newAxisSegments.midSeg.Rect[splitAxis][1]
 
 	for _, seg := range segments {
-		if seg.Rect[axis][1].Smaller(newAxisSegments.midSeg.Rect[axis][0]) {
+		if seg.Rect[splitAxis][1].Smaller(newAxisSegments.midSeg.Rect[splitAxis][0]) {
 			newAxisSegments.left = append(newAxisSegments.left, seg)
-		} else if seg.Rect[axis][0].Bigger(newAxisSegments.midSeg.Rect[axis][0]) ||
-			seg.Rect[axis][0].Equal(newAxisSegments.midSeg.Rect[axis][0]) {
+		} else if seg.Rect[splitAxis][0].BiggerOrEqual(newAxisSegments.midSeg.Rect[splitAxis][0]) {
 			newAxisSegments.right = append(newAxisSegments.right, seg)
 		} else {
-			leftSlice := seg.SliceClone(axis, seg.Rect[axis][0], newAxisSegments.midSeg.Rect[axis][0])
+			leftSlice := seg.SliceClone(splitAxis, seg.Rect[splitAxis][0], newAxisSegments.midSeg.Rect[splitAxis][0])
 			newAxisSegments.left = append(newAxisSegments.left, leftSlice)
 
-			rightSlice := seg.SliceClone(axis, newAxisSegments.midSeg.Rect[axis][0], seg.Rect[axis][1])
+			rightSlice := seg.SliceClone(splitAxis, newAxisSegments.midSeg.Rect[splitAxis][0], seg.Rect[splitAxis][1])
 			newAxisSegments.right = append(newAxisSegments.right, rightSlice)
 		}
 
-		if seg.Rect[axis][0].Smaller(newAxisSegments.min) {
-			newAxisSegments.min = seg.Rect[axis][0]
+		if seg.Rect[splitAxis][0].Smaller(newAxisSegments.min) {
+			newAxisSegments.min = seg.Rect[splitAxis][0]
 		}
 
-		if seg.Rect[axis][1].Bigger(newAxisSegments.max) {
-			newAxisSegments.max = seg.Rect[axis][1]
+		if seg.Rect[splitAxis][1].Bigger(newAxisSegments.max) {
+			newAxisSegments.max = seg.Rect[splitAxis][1]
 		}
 	}
 

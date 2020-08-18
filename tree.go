@@ -90,7 +90,7 @@ func (tree *Tree) Build() {
 		return
 	}
 
-	newNode := NewNode(tree.segments, 0, 0, tree.levelMax, tree.leafDataSizeMin)
+	newNode := NewNode(tree.segments, tree.levelMax, tree.leafDataSizeMin)
 
 	tree.mu.Lock()
 	tree.root = newNode

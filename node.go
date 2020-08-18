@@ -20,27 +20,26 @@ type TreeNode struct {
 	Segments []*Segment
 }
 
-func NewNode(segments []*Segment, axis int, level int, levelMax int, leafDataSizeMin int) *TreeNode {
+func NewNode(segments []*Segment, level int, leafDataSizeMin int) *TreeNode {
 	if len(segments) == 0 {
 		return nil
 	}
 
-	if len(segments) < leafDataSizeMin || level > levelMax {
+	if len(segments) < leafDataSizeMin || level > 0 {
 		return &TreeNode{
 			Segments: segments,
 		}
 	}
 
-	axisSegments := NewSegments(axis, segments)
-
-	nextDim := (axis + 1) % len(segments[0].Rect)
+	axisSegments := NewSplitSegments(segments)
 	return &TreeNode{
-		Axis:  axis,
-		Mid:   axisSegments.midSeg.Rect[axis][0],
+		Axis:  axisSegments.axis,
+		Level:level,
+		Mid:   axisSegments.midSeg.Rect[axisSegments.axis][0],
 		Min:   axisSegments.min,
 		Max:   axisSegments.max,
-		Left:  NewNode(axisSegments.left, nextDim, level+1, levelMax, leafDataSizeMin),
-		Right: NewNode(axisSegments.right, nextDim, level+1, levelMax, leafDataSizeMin),
+		Left:  NewNode(axisSegments.left, level - 1, leafDataSizeMin),
+		Right: NewNode(axisSegments.right, level - 1, leafDataSizeMin),
 	}
 }
 
