@@ -13,14 +13,14 @@ const DefaultTreeLevelMax = 12
 const DefaultLeafDataMin = 16
 
 type Tree struct {
-	mu sync.RWMutex
+	mu       sync.RWMutex
 	updateMu sync.Mutex
 
-	levelMax int
+	levelMax        int
 	leafDataSizeMin int
 
 	segments []*Segment
-	root *TreeNode
+	root     *TreeNode
 }
 
 func NewTree(maxLevel int, minLeafDataSize int) *Tree {
@@ -32,7 +32,7 @@ func NewTree(maxLevel int, minLeafDataSize int) *Tree {
 		minLeafDataSize = DefaultLeafDataMin
 	}
 	return &Tree{
-		levelMax : maxLevel,
+		levelMax:        maxLevel,
 		leafDataSizeMin: minLeafDataSize,
 	}
 }
@@ -51,7 +51,7 @@ func (tree *Tree) String() string {
 	return fmt.Sprintf("%v", tree.root.Dump(""))
 }
 
-func (tree *Tree)Add(rect Rect, data interface{}) {
+func (tree *Tree) Add(rect Rect, data interface{}) {
 	tree.updateMu.Lock()
 	defer tree.updateMu.Unlock()
 
@@ -63,7 +63,7 @@ func (tree *Tree)Add(rect Rect, data interface{}) {
 	tree.segments = append(tree.segments, seg)
 }
 
-func (tree *Tree)Remove(data interface{}) {
+func (tree *Tree) Remove(data interface{}) {
 	tree.updateMu.Lock()
 	defer tree.updateMu.Unlock()
 
@@ -82,7 +82,7 @@ func (tree *Tree)Remove(data interface{}) {
 	tree.segments = newSegments
 }
 
-func (tree *Tree)Build() {
+func (tree *Tree) Build() {
 	tree.updateMu.Lock()
 	defer tree.updateMu.Unlock()
 

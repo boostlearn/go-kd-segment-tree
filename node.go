@@ -3,7 +3,6 @@ package go_kd_segment_tree
 import (
 	"fmt"
 	mapset "github.com/deckarep/golang-set"
-	"sort"
 )
 
 type TreeNode struct {
@@ -28,29 +27,20 @@ func NewNode(segments []*Segment, axis int, level int, levelMax int, leafDataSiz
 
 	if len(segments) < leafDataSizeMin || level > levelMax {
 		return &TreeNode{
-			Segments:  segments,
+			Segments: segments,
 		}
 	}
 
 	axisSegments := NewSegments(axis, segments)
-	sort.Sort(axisSegments)
-	mid := len(axisSegments.segments) / 2
-	for mid > 0 {
-		if axisSegments.segments[mid-1].Rect[axis][0] == axisSegments.segments[mid].Rect[axis][0] {
-			mid -= 1
-			continue
-		}
-		break
-	}
 
 	nextDim := (axis + 1) % len(segments[0].Rect)
 	return &TreeNode{
 		Axis:  axis,
-		Mid:   axisSegments.segments[mid].Rect[axis][0],
-		Min:   axisSegments.segments[0].Rect[axis][0],
-		Max:   axisSegments.segments[len(axisSegments.segments)-1].Rect[axis][1],
-		Left:  NewNode(axisSegments.segments[:mid], nextDim, level+1, levelMax, leafDataSizeMin),
-		Right: NewNode(axisSegments.segments[mid:], nextDim, level+1, levelMax, leafDataSizeMin),
+		Mid:   axisSegments.midSeg.Rect[axis][0],
+		Min:   axisSegments.min,
+		Max:   axisSegments.max,
+		Left:  NewNode(axisSegments.left, nextDim, level+1, levelMax, leafDataSizeMin),
+		Right: NewNode(axisSegments.right, nextDim, level+1, levelMax, leafDataSizeMin),
 	}
 }
 
@@ -60,7 +50,7 @@ func (node *TreeNode) Search(p Point, axis int) []interface{} {
 	}
 
 	if node.Segments != nil {
-		var result  = mapset.NewSet()
+		var result = mapset.NewSet()
 		for _, seg := range node.Segments {
 			if seg.Rect.Contains(p) {
 				for _, d := range seg.Data.ToSlice() {

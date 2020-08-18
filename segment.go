@@ -2,13 +2,11 @@ package go_kd_segment_tree
 
 import (
 	"fmt"
+	mapset "github.com/deckarep/golang-set"
 	"math/rand"
 	"sort"
-	mapset "github.com/deckarep/golang-set"
 	"strings"
 )
-
-
 
 func (r Rect) Clone() Rect {
 	var newRect Rect
@@ -25,7 +23,6 @@ func (r Rect) Key() string {
 	}
 	return strings.Join(dimKeys, ":")
 }
-
 
 type Segment struct {
 	Rect Rect
@@ -67,11 +64,16 @@ func (s *Segment) SliceClone(axis int, start float64, end float64) *Segment {
 	return newSegment
 }
 
-
-
 type AxisSegments struct {
 	axis     int
 	segments []*Segment
+	mid      int
+	midSeg   *Segment
+	left     []*Segment
+	right    []*Segment
+
+	min float64
+	max float64
 }
 
 func (b *AxisSegments) Len() int {
@@ -94,7 +96,6 @@ func (b *AxisSegments) Less(i, j int) bool {
 	}
 }
 
-
 func (b *AxisSegments) Swap(i, j int) {
 	b.segments[i], b.segments[j] = b.segments[j], b.segments[i]
 }
@@ -104,48 +105,45 @@ func NewSegments(axis int, segments []*Segment) *AxisSegments {
 		return nil
 	}
 
-	var axisCutPoints []float64
-	var cutPointsMap = make(map[float64]bool)
-	for _, s := range segments {
-		start := s.Rect[axis][0]
-		if cutPointsMap[start] == false {
-			axisCutPoints = append(axisCutPoints, start)
-			cutPointsMap[start] = true
-		}
-		end := s.Rect[axis][1]
-		if cutPointsMap[end] == false {
-			axisCutPoints = append(axisCutPoints, end)
-			cutPointsMap[end] = true
-		}
-	}
-	if len(axisCutPoints) == 0 {
-		return nil
-	}
-	sort.Float64s(axisCutPoints)
-
-	var allSegment []*Segment
-	var segmentMap = make(map[string]*Segment)
-	for i, _ := range axisCutPoints[:len(axisCutPoints)-1] {
-		start := axisCutPoints[i]
-		end := axisCutPoints[i+1]
-		for _, segment := range segments {
-			if segment.Rect[axis][0] <= start && segment.Rect[axis][1] >= end {
-				segmentSlice := segment.SliceClone(axis, start, end)
-				rectKey := segmentSlice.Rect.Key()
-				if dup, ok := segmentMap[rectKey]; ok {
-					for _, t := range segmentSlice.Data.ToSlice() {
-						dup.Data.Add(t)
-					}
-					continue
-				}
-				allSegment = append(allSegment, segmentSlice)
-			}
-		}
-	}
-
 	newAxisSegments := &AxisSegments{
 		axis:     axis,
-		segments: allSegment,
+		segments: segments,
+	}
+
+	sort.Sort(newAxisSegments)
+	newAxisSegments.mid = len(newAxisSegments.segments) / 2
+	for newAxisSegments.mid > 0 {
+		if newAxisSegments.segments[newAxisSegments.mid-1].Rect[axis][0] ==
+			newAxisSegments.segments[newAxisSegments.mid].Rect[axis][0] {
+			newAxisSegments.mid -= 1
+			continue
+		}
+		break
+	}
+	newAxisSegments.midSeg = newAxisSegments.segments[newAxisSegments.mid]
+	newAxisSegments.min = newAxisSegments.midSeg.Rect[axis][0]
+	newAxisSegments.max = newAxisSegments.midSeg.Rect[axis][1]
+
+	for _, seg := range segments {
+		if seg.Rect[axis][1] < newAxisSegments.midSeg.Rect[axis][0] {
+			newAxisSegments.left = append(newAxisSegments.left, seg)
+		} else if seg.Rect[axis][0] >= newAxisSegments.midSeg.Rect[axis][0] {
+			newAxisSegments.right = append(newAxisSegments.right, seg)
+		} else {
+			leftSlice := seg.SliceClone(axis, seg.Rect[axis][0], newAxisSegments.midSeg.Rect[axis][0])
+			newAxisSegments.left = append(newAxisSegments.left, leftSlice)
+
+			rightSlice := seg.SliceClone(axis, newAxisSegments.midSeg.Rect[axis][0], seg.Rect[axis][1])
+			newAxisSegments.right = append(newAxisSegments.right, rightSlice)
+		}
+
+		if seg.Rect[axis][0] < newAxisSegments.min {
+			newAxisSegments.min = seg.Rect[axis][0]
+		}
+
+		if seg.Rect[axis][1] > newAxisSegments.max {
+			newAxisSegments.max = seg.Rect[axis][1]
+		}
 	}
 
 	return newAxisSegments
