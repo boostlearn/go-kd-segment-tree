@@ -16,69 +16,192 @@ type Measure interface {
 type FloatMeasure float64
 
 func (a FloatMeasure) Bigger(b interface{}) bool {
-	return float64(a) > b.(float64)
+	switch b.(type) {
+	case FloatMeasure:
+		return float64(a) > float64(b.(FloatMeasure))
+	case MeasureMax:
+		return false
+	case MeasureMin:
+		return true
+	}
+	return false
 }
 
 func (a FloatMeasure) Smaller(b interface{}) bool {
-	return float64(a) < b.(float64)
+	switch b.(type) {
+	case FloatMeasure:
+		return float64(a) < float64(b.(FloatMeasure))
+	case MeasureMax:
+		return true
+	case MeasureMin:
+		return false
+	}
+	return false
+
 }
 
 func (a FloatMeasure) Equal(b interface{}) bool {
-	return float64(a) == b.(float64)
+	switch b.(type) {
+	case FloatMeasure:
+		return float64(a) == float64(b.(FloatMeasure))
+	case MeasureMax:
+		return false
+	case MeasureMin:
+		return false
+	}
+	return false
 }
 
 func (a FloatMeasure) BiggerOrEqual(b interface{}) bool {
-	return float64(a) >= b.(float64)
+	switch b.(type) {
+	case FloatMeasure:
+		return float64(a) >= float64(b.(FloatMeasure))
+	case MeasureMax:
+		return false
+	case MeasureMin:
+		return true
+	}
+	return false
+
 }
 
 func (a FloatMeasure) SmallerOrEqual(b interface{}) bool {
-	return float64(a) <= b.(float64)
+	switch b.(type) {
+	case FloatMeasure:
+		return float64(a) <= float64(b.(FloatMeasure))
+	case MeasureMax:
+		return true
+	case MeasureMin:
+		return false
+	}
+	return false
 }
 
 
 type StringMeasure string
 
 func (a StringMeasure) Bigger(b interface{}) bool {
-	return string(a) > b.(string)
+	switch b.(type) {
+	case StringMeasure:
+		return string(a) > string(b.(StringMeasure))
+	case MeasureMax:
+		return false
+	case MeasureMin:
+		return true
+	}
+	return false
 }
 
 func (a StringMeasure) Smaller(b interface{}) bool {
-	return string(a) < b.(string)
+	switch b.(type) {
+	case StringMeasure:
+		return string(a) < string(b.(StringMeasure))
+	case MeasureMax:
+		return true
+	case MeasureMin:
+		return false
+	}
+	return false
 }
 
 func (a StringMeasure) Equal(b interface{}) bool {
-	return string(a) == b.(string)
+	switch b.(type) {
+	case StringMeasure:
+		return string(a) == string(b.(StringMeasure))
+	case MeasureMax:
+		return false
+	case MeasureMin:
+		return false
+	}
+	return false
 }
 
 func (a StringMeasure) BiggerOrEqual(b interface{}) bool {
-	return string(a) >= b.(string)
+	switch b.(type) {
+	case StringMeasure:
+		return string(a) >= string(b.(StringMeasure))
+	case MeasureMax:
+		return false
+	case MeasureMin:
+		return true
+	}
+	return false
 }
 
 func (a StringMeasure) SmallerOrEqual(b interface{}) bool {
-	return string(a) <= b.(string)
+	switch b.(type) {
+	case StringMeasure:
+		return string(a) <= string(b.(StringMeasure))
+	case MeasureMax:
+		return true
+	case MeasureMin:
+		return false
+	}
+	return false
 }
 
 
 type TimeMeasure time.Time
 
 func (f TimeMeasure) Bigger(b interface{}) bool {
-	return time.Time(f).After(b.(time.Time))
+	switch b.(type) {
+	case TimeMeasure:
+		return time.Time(f).After(b.(time.Time))
+	case MeasureMax:
+		return false
+	case MeasureMin:
+		return true
+	}
+	return false
 }
 
 func (f TimeMeasure) Smaller(b interface{}) bool {
-	return time.Time(f).Before(b.(time.Time))
+	switch b.(type) {
+	case TimeMeasure:
+		return time.Time(f).Before(b.(time.Time))
+	case MeasureMax:
+		return true
+	case MeasureMin:
+		return false
+	}
+	return false
+
 }
 
 func (f TimeMeasure) Equal(b interface{}) bool {
-	return time.Time(f).Equal(b.(time.Time))
+	switch b.(type) {
+	case TimeMeasure:
+		return time.Time(f).Equal(b.(time.Time))
+	case MeasureMax:
+		return true
+	case MeasureMin:
+		return false
+	}
+	return false
 }
 
 func (f TimeMeasure) BiggerOrEqual(b interface{}) bool {
-	return time.Time(f).After(b.(time.Time)) || time.Time(f).Equal(b.(time.Time))
+	switch b.(type) {
+	case TimeMeasure:
+		return time.Time(f).After(b.(time.Time)) || time.Time(f).Equal(b.(time.Time))
+	case MeasureMax:
+		return false
+	case MeasureMin:
+		return true
+	}
+	return false
 }
 
 func (f TimeMeasure) SmallerOrEqual(b interface{}) bool {
-	return time.Time(f).Before(b.(time.Time)) || time.Time(f).Equal(b.(time.Time))
+	switch b.(type) {
+	case TimeMeasure:
+		return time.Time(f).Before(b.(time.Time)) || time.Time(f).Equal(b.(time.Time))
+	case MeasureMax:
+		return true
+	case MeasureMin:
+		return false
+	}
+	return false
 }
 
 type MeasureMin struct{}

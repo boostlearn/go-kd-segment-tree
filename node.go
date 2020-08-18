@@ -25,7 +25,7 @@ func NewNode(segments []*Segment, level int, leafDataSizeMin int) *TreeNode {
 		return nil
 	}
 
-	if len(segments) < leafDataSizeMin || level > 0 {
+	if len(segments) < leafDataSizeMin || level <= 0 {
 		return &TreeNode{
 			Segments: segments,
 		}
