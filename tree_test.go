@@ -67,7 +67,7 @@ func BenchmarkTree_Search(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		p := searchPoint[i]
+		p := searchPoint[i%len(searchPoint)]
 		_ = tree.Search(p)
 	}
 
@@ -78,7 +78,7 @@ func BenchmarkNoTree_Search(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		p := searchPoint[i]
+		p := searchPoint[i%len(searchPoint)]
 		for _, rect := range testRects {
 			if rect.Contains(p) {
 			}
