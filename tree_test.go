@@ -18,8 +18,8 @@ func init() {
 		point := Point{}
 		for j := 0; j < dimNum; j++ {
 			k := rand.Float64()
-			rect = append(rect, [2]float64{k, k + 0.0001})
-			point = append(point, k)
+			rect = append(rect, [2]Measure{FloatMeasure(k), FloatMeasure(k + 0.0001)})
+			point = append(point, FloatMeasure(k))
 		}
 		testRects = append(testRects, rect)
 		searchPoint = append(searchPoint, point)

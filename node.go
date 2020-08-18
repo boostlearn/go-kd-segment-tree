@@ -10,9 +10,9 @@ type TreeNode struct {
 
 	Level int
 
-	Mid float64
-	Min float64
-	Max float64
+	Mid Measure
+	Min Measure
+	Max Measure
 
 	Left  *TreeNode
 	Right *TreeNode
@@ -44,7 +44,7 @@ func NewNode(segments []*Segment, axis int, level int, levelMax int, leafDataSiz
 	}
 }
 
-func (node *TreeNode) Search(p Point, axis int) []interface{} {
+func (node *TreeNode) Search(p Point) []interface{} {
 	if node == nil {
 		return nil
 	}
@@ -61,21 +61,21 @@ func (node *TreeNode) Search(p Point, axis int) []interface{} {
 		return result.ToSlice()
 	}
 
-	x := p[axis]
-	if x < node.Min || x > node.Max {
+	x := p[node.Axis]
+	if x.Smaller(node.Min) || x.Bigger(node.Max) {
 		return nil
 	}
 
-	if x < node.Mid {
+	if x.Smaller(node.Mid) {
 		if node.Left == nil {
 			return nil
 		}
-		return node.Left.Search(p, (axis+1)%len(p))
+		return node.Left.Search(p)
 	} else {
 		if node.Right == nil {
 			return nil
 		}
-		return node.Right.Search(p, (axis+1)%len(p))
+		return node.Right.Search(p)
 	}
 }
 

@@ -6,8 +6,8 @@ import (
 	"sync"
 )
 
-type Point []float64
-type Rect [][2]float64
+type Point []Measure
+type Rect [][2]Measure
 
 const DefaultTreeLevelMax = 12
 const DefaultLeafDataMin = 16
@@ -41,7 +41,7 @@ func (tree *Tree) Search(p Point) []interface{} {
 	tree.mu.RLock()
 	defer tree.mu.RUnlock()
 
-	return tree.root.Search(p, 0)
+	return tree.root.Search(p)
 }
 
 func (tree *Tree) String() string {

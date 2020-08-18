@@ -11,7 +11,7 @@ import (
 func (r Rect) Clone() Rect {
 	var newRect Rect
 	for _, r := range r {
-		newRect = append(newRect, [2]float64{r[0], r[1]})
+		newRect = append(newRect, [2]Measure{r[0], r[1]})
 	}
 	return newRect
 }
@@ -31,7 +31,7 @@ type Segment struct {
 	rnd float64
 }
 
-func (s *Segment) Range(axis int) (float64, float64) {
+func (s *Segment) Range(axis int) (Measure, Measure) {
 	return s.Rect[axis][0], s.Rect[axis][1]
 }
 
@@ -41,7 +41,7 @@ func (r Rect) Contains(p Point) bool {
 	}
 
 	for i, r := range r {
-		if r[0] > p[i] || r[1] < p[i] {
+		if r[0].Bigger(p[i]) || r[1].Smaller(p[i]) {
 			return false
 		}
 	}
@@ -53,7 +53,7 @@ func (s *Segment) String() string {
 	return fmt.Sprintf("{%v, %v}", s.Rect, s.Data)
 }
 
-func (s *Segment) SliceClone(axis int, start float64, end float64) *Segment {
+func (s *Segment) SliceClone(axis int, start Measure, end Measure) *Segment {
 	newSegment := &Segment{
 		Rect: s.Rect.Clone(),
 		Data: s.Data.Clone(),
@@ -72,8 +72,8 @@ type AxisSegments struct {
 	left     []*Segment
 	right    []*Segment
 
-	min float64
-	max float64
+	min Measure
+	max Measure
 }
 
 func (b *AxisSegments) Len() int {
@@ -82,7 +82,7 @@ func (b *AxisSegments) Len() int {
 
 func (b *AxisSegments) Less(i, j int) bool {
 	if b.segments[i].Rect[b.axis][0] != b.segments[j].Rect[b.axis][0] {
-		return b.segments[i].Rect[b.axis][0] < b.segments[j].Rect[b.axis][0]
+		return b.segments[i].Rect[b.axis][0].Smaller(b.segments[j].Rect[b.axis][0])
 	} else {
 		if b.segments[i].rnd == 0 {
 			b.segments[i].rnd = rand.Float64()
@@ -125,9 +125,10 @@ func NewSegments(axis int, segments []*Segment) *AxisSegments {
 	newAxisSegments.max = newAxisSegments.midSeg.Rect[axis][1]
 
 	for _, seg := range segments {
-		if seg.Rect[axis][1] < newAxisSegments.midSeg.Rect[axis][0] {
+		if seg.Rect[axis][1].Smaller(newAxisSegments.midSeg.Rect[axis][0]) {
 			newAxisSegments.left = append(newAxisSegments.left, seg)
-		} else if seg.Rect[axis][0] >= newAxisSegments.midSeg.Rect[axis][0] {
+		} else if seg.Rect[axis][0].Bigger(newAxisSegments.midSeg.Rect[axis][0]) ||
+			seg.Rect[axis][0].Equal(newAxisSegments.midSeg.Rect[axis][0]) {
 			newAxisSegments.right = append(newAxisSegments.right, seg)
 		} else {
 			leftSlice := seg.SliceClone(axis, seg.Rect[axis][0], newAxisSegments.midSeg.Rect[axis][0])
@@ -137,11 +138,11 @@ func NewSegments(axis int, segments []*Segment) *AxisSegments {
 			newAxisSegments.right = append(newAxisSegments.right, rightSlice)
 		}
 
-		if seg.Rect[axis][0] < newAxisSegments.min {
+		if seg.Rect[axis][0].Smaller(newAxisSegments.min) {
 			newAxisSegments.min = seg.Rect[axis][0]
 		}
 
-		if seg.Rect[axis][1] > newAxisSegments.max {
+		if seg.Rect[axis][1].Bigger(newAxisSegments.max) {
 			newAxisSegments.max = seg.Rect[axis][1]
 		}
 	}
