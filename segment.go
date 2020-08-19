@@ -123,7 +123,6 @@ func NewSplitSegments(segments []*Segment) *SplitSegments {
 		axis:     splitAxis,
 		segments: segments,
 	}
-
 	sort.Sort(newAxisSegments)
 	newAxisSegments.mid = len(newAxisSegments.segments) / 2
 	for newAxisSegments.mid > 0 {
@@ -162,3 +161,4 @@ func NewSplitSegments(segments []*Segment) *SplitSegments {
 
 	return newAxisSegments
 }
+

@@ -10,7 +10,8 @@ import (
 var testRects []Rect
 var searchPoint []Point
 var rectNum int = 10000
-var dimNum int = 2
+var dimNum int = 30
+var targetRate float64 = 1.0
 
 func init() {
 	for i := 0; i < rectNum; i++ {
@@ -18,7 +19,11 @@ func init() {
 		point := Point{}
 		for j := 0; j < dimNum; j++ {
 			k := rand.Float64()
-			rect = append(rect, [2]Measure{FloatMeasure(k), FloatMeasure(k + 0.0001)})
+			if rand.Float64() < targetRate {
+				rect = append(rect, [2]Measure{FloatMeasure(k), FloatMeasure(k + 0.0001)})
+			} else {
+				rect = append(rect, [2]Measure{MeasureMin{}, MeasureMax{}})
+			}
 			point = append(point, FloatMeasure(k))
 		}
 		testRects = append(testRects, rect)
@@ -57,7 +62,7 @@ func TestNewTree(t *testing.T) {
 }
 
 func BenchmarkTree_Search(b *testing.B) {
-	tree := NewTree(12, 16)
+	tree := NewTree(120, 16)
 	for i, rect := range testRects {
 		tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
 	}
