@@ -31,7 +31,13 @@ func NewNode(segments []*Segment, level int, leafDataSizeMin int) *TreeNode {
 		}
 	}
 
-	axisSegments := NewSplitSegments(segments)
+	axisSegments := NewSegmentBranch(segments, 0.2)
+	if axisSegments == nil {
+		return &TreeNode{
+			Segments: segments,
+		}
+	}
+
 	return &TreeNode{
 		Axis:  axisSegments.axis,
 		Level:level,

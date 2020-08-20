@@ -64,23 +64,24 @@ func (s *Segment) SliceClone(axis int, start Measure, end Measure) *Segment {
 	return newSegment
 }
 
-type SplitSegments struct {
+type SegmentBranching struct {
 	axis     int
 	segments []*Segment
+
 	mid      int
+	min Measure
+	max Measure
+
 	midSeg   *Segment
 	left     []*Segment
 	right    []*Segment
-
-	min Measure
-	max Measure
 }
 
-func (b *SplitSegments) Len() int {
+func (b *SegmentBranching) Len() int {
 	return len(b.segments)
 }
 
-func (b *SplitSegments) Less(i, j int) bool {
+func (b *SegmentBranching) Less(i, j int) bool {
 	if b.segments[i].Rect[b.axis][0] != b.segments[j].Rect[b.axis][0] {
 		return b.segments[i].Rect[b.axis][0].Smaller(b.segments[j].Rect[b.axis][0])
 	} else {
@@ -96,69 +97,100 @@ func (b *SplitSegments) Less(i, j int) bool {
 	}
 }
 
-func (b *SplitSegments) Swap(i, j int) {
+func (b *SegmentBranching) Swap(i, j int) {
 	b.segments[i], b.segments[j] = b.segments[j], b.segments[i]
 }
 
-func NewSplitSegments(segments []*Segment) *SplitSegments {
+func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 	if len(segments) == 0 {
 		return nil
 	}
 
-	splitAxis := 0
-	maxKeySize := 0
+	segmentBranch := &SegmentBranching{
+		segments: segments,
+	}
+
+	maxGiniAxis := 0
+	maxGiniCoefficient := -1.0
 	for axis, _ := range segments[0].Rect {
-		keyMap := mapset.NewSet()
-		for _, seg := range segments {
-			keyMap.Add(seg.Rect[axis][0])
+		segmentBranch.axis = axis
+		sort.Sort(segmentBranch)
+
+		mid := len(segmentBranch.segments) / 2
+		for mid > 0 {
+			if segmentBranch.segments[mid-1].Rect[axis][0] ==
+				segmentBranch.segments[mid].Rect[axis][0] {
+				mid -= 1
+				continue
+			}
+			break
 		}
-		keys := keyMap.ToSlice()
-		if len(keys) > maxKeySize {
-			splitAxis = axis
-			maxKeySize = len(keys)
+		midSeg := segmentBranch.segments[mid]
+
+		leftNum := 0
+		rightNum := 0
+		for _, seg := range segments {
+			if seg.Rect[axis][1].Smaller(midSeg.Rect[axis][0]) {
+				leftNum += 1
+			} else if seg.Rect[axis][0].BiggerOrEqual(midSeg.Rect[axis][0]) {
+				rightNum += 1
+			} else {
+				leftNum += 1
+				rightNum += 1
+			}
+		}
+
+		leftRatio := float64(leftNum)*1.0/float64(len(segments))
+		rightRatio := float64(rightNum)*1.0/float64(len(segments))
+		axisJini := 1 - leftRatio * leftRatio - rightRatio * rightRatio
+
+		if axisJini > maxGiniCoefficient {
+			maxGiniCoefficient = axisJini
+			maxGiniAxis = axis
 		}
 	}
 
-	newAxisSegments := &SplitSegments{
-		axis:     splitAxis,
-		segments: segments,
+	if maxGiniCoefficient < minJini {
+		return nil
 	}
-	sort.Sort(newAxisSegments)
-	newAxisSegments.mid = len(newAxisSegments.segments) / 2
-	for newAxisSegments.mid > 0 {
-		if newAxisSegments.segments[newAxisSegments.mid-1].Rect[splitAxis][0] ==
-			newAxisSegments.segments[newAxisSegments.mid].Rect[splitAxis][0] {
-			newAxisSegments.mid -= 1
+
+	segmentBranch.axis = maxGiniAxis
+	sort.Sort(segmentBranch)
+	segmentBranch.mid = len(segmentBranch.segments) / 2
+	for segmentBranch.mid > 0 {
+		if segmentBranch.segments[segmentBranch.mid-1].Rect[maxGiniAxis][0] ==
+			segmentBranch.segments[segmentBranch.mid].Rect[maxGiniAxis][0] {
+			segmentBranch.mid -= 1
 			continue
 		}
 		break
 	}
-	newAxisSegments.midSeg = newAxisSegments.segments[newAxisSegments.mid]
-	newAxisSegments.min = newAxisSegments.midSeg.Rect[splitAxis][0]
-	newAxisSegments.max = newAxisSegments.midSeg.Rect[splitAxis][1]
+	segmentBranch.midSeg = segmentBranch.segments[segmentBranch.mid]
+	segmentBranch.min = segmentBranch.midSeg.Rect[maxGiniAxis][0]
+	segmentBranch.max = segmentBranch.midSeg.Rect[maxGiniAxis][1]
 
 	for _, seg := range segments {
-		if seg.Rect[splitAxis][1].Smaller(newAxisSegments.midSeg.Rect[splitAxis][0]) {
-			newAxisSegments.left = append(newAxisSegments.left, seg)
-		} else if seg.Rect[splitAxis][0].BiggerOrEqual(newAxisSegments.midSeg.Rect[splitAxis][0]) {
-			newAxisSegments.right = append(newAxisSegments.right, seg)
+		if seg.Rect[maxGiniAxis][1].Smaller(segmentBranch.midSeg.Rect[maxGiniAxis][0]) {
+			segmentBranch.left = append(segmentBranch.left, seg)
+		} else if seg.Rect[maxGiniAxis][0].BiggerOrEqual(segmentBranch.midSeg.Rect[maxGiniAxis][0]) {
+			segmentBranch.right = append(segmentBranch.right, seg)
 		} else {
-			leftSlice := seg.SliceClone(splitAxis, seg.Rect[splitAxis][0], newAxisSegments.midSeg.Rect[splitAxis][0])
-			newAxisSegments.left = append(newAxisSegments.left, leftSlice)
+			leftSlice := seg.SliceClone(maxGiniAxis, seg.Rect[maxGiniAxis][0], segmentBranch.midSeg.Rect[maxGiniAxis][0])
+			segmentBranch.left = append(segmentBranch.left, leftSlice)
 
-			rightSlice := seg.SliceClone(splitAxis, newAxisSegments.midSeg.Rect[splitAxis][0], seg.Rect[splitAxis][1])
-			newAxisSegments.right = append(newAxisSegments.right, rightSlice)
+			rightSlice := seg.SliceClone(maxGiniAxis, segmentBranch.midSeg.Rect[maxGiniAxis][0], seg.Rect[maxGiniAxis][1])
+			segmentBranch.right = append(segmentBranch.right, rightSlice)
 		}
 
-		if seg.Rect[splitAxis][0].Smaller(newAxisSegments.min) {
-			newAxisSegments.min = seg.Rect[splitAxis][0]
+		if seg.Rect[maxGiniAxis][0].Smaller(segmentBranch.min) {
+			segmentBranch.min = seg.Rect[maxGiniAxis][0]
 		}
 
-		if seg.Rect[splitAxis][1].Bigger(newAxisSegments.max) {
-			newAxisSegments.max = seg.Rect[splitAxis][1]
+		if seg.Rect[maxGiniAxis][1].Bigger(segmentBranch.max) {
+			segmentBranch.max = seg.Rect[maxGiniAxis][1]
 		}
 	}
 
-	return newAxisSegments
+	return segmentBranch
 }
 
