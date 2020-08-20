@@ -10,7 +10,7 @@ var testRects []Rect
 var searchPoint []Point
 var rectNum int = 10000
 var dimNum int = 10
-var targetRate float64 = 1.0
+var targetRate float64 = 0.8
 
 func init() {
 	for i := 0; i < rectNum; i++ {
@@ -69,8 +69,8 @@ func TestNewTree(t *testing.T) {
 func BenchmarkTree_Search(b *testing.B) {
 	tree := NewTree(&TreeOptions{
 		TreeLevelMax:     128,
-		LeafNodeMin:      16,
-		BranchingGiniMin: 0.3,
+		LeafNodeMin:      1,
+		BranchingGiniMin: 0.1,
 	})
 	for i, rect := range testRects {
 		tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))

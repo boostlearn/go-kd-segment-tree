@@ -64,6 +64,15 @@ func (s *Segment) SliceClone(axis int, start Measure, end Measure) *Segment {
 	return newSegment
 }
 
+func (s *Segment) Clone() *Segment {
+	newSegment := &Segment{
+		Rect: s.Rect.Clone(),
+		Data: s.Data.Clone(),
+	}
+	return newSegment
+}
+
+
 type SegmentBranching struct {
 	axis     int
 	segments []*Segment
@@ -188,11 +197,8 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 		} else if seg.Rect[maxGiniAxis][0].BiggerOrEqual(segmentBranch.midSeg.Rect[maxGiniAxis][0]) {
 			segmentBranch.right = append(segmentBranch.right, seg)
 		} else {
-			leftSlice := seg.SliceClone(maxGiniAxis, seg.Rect[maxGiniAxis][0], segmentBranch.midSeg.Rect[maxGiniAxis][0])
-			segmentBranch.left = append(segmentBranch.left, leftSlice)
-
-			rightSlice := seg.SliceClone(maxGiniAxis, segmentBranch.midSeg.Rect[maxGiniAxis][0], seg.Rect[maxGiniAxis][1])
-			segmentBranch.right = append(segmentBranch.right, rightSlice)
+			segmentBranch.left = append(segmentBranch.left, seg.Clone())
+			segmentBranch.right = append(segmentBranch.right, seg)
 		}
 
 		if seg.Rect[maxGiniAxis][0].Smaller(segmentBranch.min) {
