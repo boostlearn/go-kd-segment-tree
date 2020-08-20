@@ -10,8 +10,8 @@ import (
 var testRects []Rect
 var searchPoint []Point
 var rectNum int = 10000
-var dimNum int = 30
-var targetRate float64 = 0.8
+var dimNum int = 3
+var targetRate float64 = 1.0
 
 func init() {
 	for i := 0; i < rectNum; i++ {
