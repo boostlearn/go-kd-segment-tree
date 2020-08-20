@@ -154,9 +154,13 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 			}
 		}
 
-		leftRatio := float64(leftNum) * 1.0 / float64(len(segments))
-		rightRatio := 1 - leftRatio
-		axisJini := 1 - leftRatio*leftRatio - rightRatio*rightRatio
+		p := 0.0
+		if leftNum < rightNum {
+			p = float64(rightNum) * 1.0 / float64(len(segments))
+		} else {
+			p = float64(leftNum) * 1.0 / float64(len(segments))
+		}
+		axisJini := 1 - p*p - (1-p)*(1-p)
 
 		if axisJini > maxGiniCoefficient {
 			maxGiniCoefficient = axisJini
