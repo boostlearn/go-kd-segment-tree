@@ -10,6 +10,8 @@ type TreeNode struct {
 
 	Level int
 
+	GiniCoefficient float64
+
 	Mid Measure
 	Min Measure
 	Max Measure
@@ -41,6 +43,7 @@ func NewNode(segments []*Segment, level int, leafNodeMin int, miniJini float64) 
 	return &TreeNode{
 		Axis:  axisSegments.axis,
 		Level: level,
+		GiniCoefficient: axisSegments.GiniCoefficient,
 		Mid:   axisSegments.midSeg.Rect[axisSegments.axis][0],
 		Min:   axisSegments.min,
 		Max:   axisSegments.max,
@@ -83,6 +86,10 @@ func (node *TreeNode) Search(p Point) []interface{} {
 }
 
 func (node *TreeNode) String() string {
+	if node == nil {
+		return ""
+	}
+
 	if node.Segments != nil {
 		return fmt.Sprintf("data:%v", node.Segments)
 	} else {
@@ -93,11 +100,15 @@ func (node *TreeNode) String() string {
 }
 
 func (node *TreeNode) Dump(prefix string) string {
+	if node == nil {
+		return ""
+	}
+
 	if node.Segments != nil {
-		return fmt.Sprintf("%s -data:%v", prefix, node.Segments)
+		return fmt.Sprintf("%s -data_num:%v", prefix, len(node.Segments))
 	} else {
-		return fmt.Sprintf("%s -node{axis:%d, mid:%v, min:%v, max:%v}\n%v\n%v\n", prefix,
-			node.Axis, node.Mid, node.Min, node.Max,
+		return fmt.Sprintf("%s -node{axis:%d, gini:%v, mid:%v, min:%v, max:%v}\n%v\n%v\n", prefix,
+			node.Axis, node.GiniCoefficient,  node.Mid, node.Min, node.Max,
 			node.Left.Dump(prefix+"    "), node.Right.Dump(prefix+"    "))
 	}
 }

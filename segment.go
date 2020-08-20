@@ -113,15 +113,27 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 	}
 
 	maxGiniAxis := 0
+	maxGiniMid := 0
 	maxGiniCoefficient := -1.0
 	for axis, _ := range segments[0].Rect {
 		segmentBranch.axis = axis
 		sort.Sort(segmentBranch)
 
-		mid := len(segmentBranch.segments) / 2
+		start := 0
+		end := len(segmentBranch.segments) - 1
+		for start <= end && segmentBranch.segments[start].Rect[axis][0].Equal(MeasureMin{}) {
+			start += 1
+		}
+		for start <= end && segmentBranch.segments[start].Rect[axis][0].Equal(MeasureMax{}) {
+			end -= 1
+		}
+		if start == end {
+			continue
+		}
+
+		mid := (start + end)/2
 		for mid > 0 {
-			if segmentBranch.segments[mid-1].Rect[axis][0] ==
-				segmentBranch.segments[mid].Rect[axis][0] {
+			if segmentBranch.segments[mid-1].Rect[axis][0].Equal(segmentBranch.segments[mid].Rect[axis][0]) {
 				mid -= 1
 				continue
 			}
@@ -143,12 +155,13 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 		}
 
 		leftRatio := float64(leftNum) * 1.0 / float64(len(segments))
-		rightRatio := float64(rightNum) * 1.0 / float64(len(segments))
+		rightRatio := 1 - leftRatio
 		axisJini := 1 - leftRatio*leftRatio - rightRatio*rightRatio
 
 		if axisJini > maxGiniCoefficient {
 			maxGiniCoefficient = axisJini
 			maxGiniAxis = axis
+			maxGiniMid = mid
 		}
 	}
 
@@ -160,15 +173,7 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 	segmentBranch.GiniCoefficient = maxGiniCoefficient
 
 	sort.Sort(segmentBranch)
-	segmentBranch.mid = len(segmentBranch.segments) / 2
-	for segmentBranch.mid > 0 {
-		if segmentBranch.segments[segmentBranch.mid-1].Rect[maxGiniAxis][0] ==
-			segmentBranch.segments[segmentBranch.mid].Rect[maxGiniAxis][0] {
-			segmentBranch.mid -= 1
-			continue
-		}
-		break
-	}
+	segmentBranch.mid = maxGiniMid
 	segmentBranch.midSeg = segmentBranch.segments[segmentBranch.mid]
 	segmentBranch.min = segmentBranch.midSeg.Rect[maxGiniAxis][0]
 	segmentBranch.max = segmentBranch.midSeg.Rect[maxGiniAxis][1]

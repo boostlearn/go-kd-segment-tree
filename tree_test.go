@@ -11,7 +11,7 @@ var testRects []Rect
 var searchPoint []Point
 var rectNum int = 10000
 var dimNum int = 30
-var targetRate float64 = 1.0
+var targetRate float64 = 0.8
 
 func init() {
 	for i := 0; i < rectNum; i++ {
@@ -31,8 +31,9 @@ func init() {
 	}
 }
 
+/*
 func TestNewTree(t *testing.T) {
-	testSize := 100
+	testSize := 10
 	total := 0
 	for i, p := range searchPoint {
 		for j, rect := range testRects[:testSize] {
@@ -64,17 +65,20 @@ func TestNewTree(t *testing.T) {
 	}
 	fmt.Println("tree: ", total)
 }
+*/
 
 func BenchmarkTree_Search(b *testing.B) {
 	tree := NewTree(&TreeOptions{
-		TreeLevelMax:     0,
-		LeafNodeMin:      0,
-		BranchingGiniMin: 1.0,
+		TreeLevelMax:     16,
+		LeafNodeMin:      16,
+		BranchingGiniMin: 0.2,
 	})
 	for i, rect := range testRects {
 		tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
 	}
 	tree.Build()
+
+	fmt.Println("tree:", tree.String())
 
 	b.ReportAllocs()
 	b.ResetTimer()
