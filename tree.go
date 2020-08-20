@@ -9,7 +9,7 @@ import (
 type Point []Measure
 type Rect [][2]Measure
 
-const DefaultTreeLevelMax = 12
+const DefaultTreeLevelMax = 16
 const DefaultLeafDataMin = 16
 const DefaultBranchGiniMin = 0.2
 
@@ -32,6 +32,10 @@ type TreeOptions struct {
 }
 
 func NewTree(opts *TreeOptions) *Tree {
+	if opts == nil {
+		opts = &TreeOptions{}
+	}
+
 	if opts.TreeLevelMax == 0 {
 		opts.TreeLevelMax = DefaultTreeLevelMax
 	}
@@ -41,7 +45,7 @@ func NewTree(opts *TreeOptions) *Tree {
 	}
 
 	if opts.BranchingGiniMin == 0.0 {
-		opts.BranchingGiniMin = DefaultLeafDataMin
+		opts.BranchingGiniMin = DefaultBranchGiniMin
 	}
 	return &Tree{
 		treeLevelMax:     opts.TreeLevelMax,

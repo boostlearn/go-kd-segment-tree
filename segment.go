@@ -72,6 +72,8 @@ type SegmentBranching struct {
 	min Measure
 	max Measure
 
+	GiniCoefficient float64
+
 	midSeg *Segment
 	left   []*Segment
 	right  []*Segment
@@ -155,6 +157,8 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 	}
 
 	segmentBranch.axis = maxGiniAxis
+	segmentBranch.GiniCoefficient = maxGiniCoefficient
+
 	sort.Sort(segmentBranch)
 	segmentBranch.mid = len(segmentBranch.segments) / 2
 	for segmentBranch.mid > 0 {
@@ -192,4 +196,18 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 	}
 
 	return segmentBranch
+}
+
+func MergeSegments(segments []*Segment) []*Segment {
+	var newSegments []*Segment
+	var uniqMap = make(map[string]*Segment)
+	for _, seg := range segments {
+		rectKey := seg.Rect.Key()
+		if s, ok := uniqMap[rectKey]; ok {
+			s.Data = s.Data.Union(seg.Data)
+		}else {
+			newSegments = append(newSegments, seg)
+		}
+	}
+	return newSegments
 }

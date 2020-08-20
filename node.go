@@ -27,14 +27,14 @@ func NewNode(segments []*Segment, level int, leafNodeMin int, miniJini float64) 
 
 	if len(segments) < leafNodeMin || level <= 0 {
 		return &TreeNode{
-			Segments: segments,
+			Segments: MergeSegments(segments),
 		}
 	}
 
 	axisSegments := NewSegmentBranch(segments, miniJini)
 	if axisSegments == nil {
 		return &TreeNode{
-			Segments: segments,
+			Segments: MergeSegments(segments),
 		}
 	}
 
@@ -58,9 +58,7 @@ func (node *TreeNode) Search(p Point) []interface{} {
 		var result = mapset.NewSet()
 		for _, seg := range node.Segments {
 			if seg.Rect.Contains(p) {
-				for _, d := range seg.Data.ToSlice() {
-					result.Add(d)
-				}
+				result = result.Union(seg.Data)
 			}
 		}
 		return result.ToSlice()

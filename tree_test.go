@@ -44,7 +44,11 @@ func TestNewTree(t *testing.T) {
 	}
 	fmt.Println("notree: ", total)
 
-	tree := NewTree(12, 16)
+	tree := NewTree(&TreeOptions{
+		TreeLevelMax:     0,
+		LeafNodeMin:      0,
+		BranchingGiniMin: 1.0,
+	})
 	for i, rect := range testRects[:testSize] {
 		tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
 	}
@@ -62,7 +66,11 @@ func TestNewTree(t *testing.T) {
 }
 
 func BenchmarkTree_Search(b *testing.B) {
-	tree := NewTree(120, 16)
+	tree := NewTree(&TreeOptions{
+		TreeLevelMax:     0,
+		LeafNodeMin:      0,
+		BranchingGiniMin: 1.0,
+	})
 	for i, rect := range testRects {
 		tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
 	}
