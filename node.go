@@ -20,18 +20,18 @@ type TreeNode struct {
 	Segments []*Segment
 }
 
-func NewNode(segments []*Segment, level int, leafDataSizeMin int) *TreeNode {
+func NewNode(segments []*Segment, level int, leafNodeMin int, miniJini float64) *TreeNode {
 	if len(segments) == 0 {
 		return nil
 	}
 
-	if len(segments) < leafDataSizeMin || level <= 0 {
+	if len(segments) < leafNodeMin || level <= 0 {
 		return &TreeNode{
 			Segments: segments,
 		}
 	}
 
-	axisSegments := NewSegmentBranch(segments, 0.2)
+	axisSegments := NewSegmentBranch(segments, miniJini)
 	if axisSegments == nil {
 		return &TreeNode{
 			Segments: segments,
@@ -40,12 +40,12 @@ func NewNode(segments []*Segment, level int, leafDataSizeMin int) *TreeNode {
 
 	return &TreeNode{
 		Axis:  axisSegments.axis,
-		Level:level,
+		Level: level,
 		Mid:   axisSegments.midSeg.Rect[axisSegments.axis][0],
 		Min:   axisSegments.min,
 		Max:   axisSegments.max,
-		Left:  NewNode(axisSegments.left, level - 1, leafDataSizeMin),
-		Right: NewNode(axisSegments.right, level - 1, leafDataSizeMin),
+		Left:  NewNode(axisSegments.left, level-1, leafNodeMin, miniJini),
+		Right: NewNode(axisSegments.right, level-1, leafNodeMin, miniJini),
 	}
 }
 

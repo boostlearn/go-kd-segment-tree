@@ -11,29 +11,42 @@ type Rect [][2]Measure
 
 const DefaultTreeLevelMax = 12
 const DefaultLeafDataMin = 16
+const DefaultBranchGiniMin = 0.2
 
 type Tree struct {
 	mu       sync.RWMutex
 	updateMu sync.Mutex
 
-	levelMax        int
-	leafDataSizeMin int
+	treeLevelMax     int
+	leafNodeMin      int
+	branchingGiniMin float64
 
 	segments []*Segment
 	root     *TreeNode
 }
 
-func NewTree(maxLevel int, minLeafDataSize int) *Tree {
-	if maxLevel == 0 {
-		maxLevel = DefaultTreeLevelMax
+type TreeOptions struct {
+	TreeLevelMax     int
+	LeafNodeMin      int
+	BranchingGiniMin float64
+}
+
+func NewTree(opts *TreeOptions) *Tree {
+	if opts.TreeLevelMax == 0 {
+		opts.TreeLevelMax = DefaultTreeLevelMax
 	}
 
-	if minLeafDataSize == 0 {
-		minLeafDataSize = DefaultLeafDataMin
+	if opts.LeafNodeMin == 0 {
+		opts.LeafNodeMin = DefaultLeafDataMin
+	}
+
+	if opts.BranchingGiniMin == 0.0 {
+		opts.BranchingGiniMin = DefaultLeafDataMin
 	}
 	return &Tree{
-		levelMax:        maxLevel,
-		leafDataSizeMin: minLeafDataSize,
+		treeLevelMax:     opts.TreeLevelMax,
+		leafNodeMin:      opts.LeafNodeMin,
+		branchingGiniMin: opts.BranchingGiniMin,
 	}
 }
 
@@ -90,7 +103,7 @@ func (tree *Tree) Build() {
 		return
 	}
 
-	newNode := NewNode(tree.segments, tree.levelMax, tree.leafDataSizeMin)
+	newNode := NewNode(tree.segments, tree.treeLevelMax, tree.leafNodeMin, tree.branchingGiniMin)
 
 	tree.mu.Lock()
 	tree.root = newNode

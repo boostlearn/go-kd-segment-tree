@@ -77,7 +77,6 @@ func (a FloatMeasure) SmallerOrEqual(b interface{}) bool {
 	return false
 }
 
-
 type StringMeasure string
 
 func (a StringMeasure) Bigger(b interface{}) bool {
@@ -139,7 +138,6 @@ func (a StringMeasure) SmallerOrEqual(b interface{}) bool {
 	}
 	return false
 }
-
 
 type TimeMeasure time.Time
 
@@ -205,6 +203,7 @@ func (f TimeMeasure) SmallerOrEqual(b interface{}) bool {
 }
 
 type MeasureMin struct{}
+
 func (f MeasureMin) Bigger(b interface{}) bool {
 	return false
 }
@@ -243,7 +242,6 @@ func (f MeasureMin) SmallerOrEqual(b interface{}) bool {
 func (f MeasureMin) String() string {
 	return fmt.Sprintf("<-INFINITE>")
 }
-
 
 type MeasureMax struct{}
 

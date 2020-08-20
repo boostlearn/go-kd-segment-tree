@@ -68,13 +68,13 @@ type SegmentBranching struct {
 	axis     int
 	segments []*Segment
 
-	mid      int
+	mid int
 	min Measure
 	max Measure
 
-	midSeg   *Segment
-	left     []*Segment
-	right    []*Segment
+	midSeg *Segment
+	left   []*Segment
+	right  []*Segment
 }
 
 func (b *SegmentBranching) Len() int {
@@ -140,9 +140,9 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 			}
 		}
 
-		leftRatio := float64(leftNum)*1.0/float64(len(segments))
-		rightRatio := float64(rightNum)*1.0/float64(len(segments))
-		axisJini := 1 - leftRatio * leftRatio - rightRatio * rightRatio
+		leftRatio := float64(leftNum) * 1.0 / float64(len(segments))
+		rightRatio := float64(rightNum) * 1.0 / float64(len(segments))
+		axisJini := 1 - leftRatio*leftRatio - rightRatio*rightRatio
 
 		if axisJini > maxGiniCoefficient {
 			maxGiniCoefficient = axisJini
@@ -193,4 +193,3 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 
 	return segmentBranch
 }
-
