@@ -29,7 +29,7 @@ func init() {
 
 		for j := 0; j < scatterDimNum; j++ {
 			k := rand.Intn(10000)
-			rect = append(rect, FloatMeasure(k))
+			rect = append(rect, Scatters{FloatMeasure(k)})
 			point = append(point, FloatMeasure(rand.Intn(10000)))
 		}
 

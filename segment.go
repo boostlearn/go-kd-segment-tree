@@ -14,8 +14,10 @@ func (rect Rect) Clone() Rect {
 		switch d.(type) {
 		case Interval:
 			newRect = append(newRect, Interval{d.(Interval)[0], d.(Interval)[1]})
-		case Measure:
-			newRect = append(newRect, d.(Measure))
+		case Scatters:
+			for _, s := range d.(Scatters) {
+				newRect = append(newRect, s)
+			}
 		}
 
 	}
@@ -28,8 +30,8 @@ func (rect Rect) Key() string {
 		switch d.(type) {
 		case Interval:
 			dimKeys = append(dimKeys, fmt.Sprintf("%v_%v", d.(Interval)[0], d.(Interval)[1]))
-		case Measure:
-			dimKeys = append(dimKeys, fmt.Sprintf("%v", d.(Measure)))
+		case Scatters:
+			dimKeys = append(dimKeys, fmt.Sprintf("%v", d.(Scatters)))
 		}
 
 	}
@@ -50,11 +52,11 @@ func (rect Rect) Contains(p Point) bool {
 	for axis, d := range rect {
 		switch d.(type) {
 		case Interval:
-			if d.(Interval)[0].Bigger(p[axis]) || d.(Interval)[1].Smaller(p[axis]) {
+			if d.(Interval).Contains(p[axis]) == false {
 				return false
 			}
-		case Measure:
-			if d.(Measure).Equal(p[axis]) == false {
+		case Scatters:
+			if d.(Scatters).Contains(p[axis]) == false {
 				return false
 			}
 		}
@@ -100,10 +102,6 @@ func (branching *SegmentBranching) Less(i, j int) bool {
 	case Interval:
 		if branching.segments[i].Rect[branching.axis].(Interval)[0].Equal(branching.segments[j].Rect[branching.axis].(Interval)[0]) == false {
 			return branching.segments[i].Rect[branching.axis].(Interval)[0].Smaller(branching.segments[j].Rect[branching.axis].(Interval)[0])
-		}
-	case Measure:
-		if branching.segments[i].Rect[branching.axis].(Measure).Equal(branching.segments[j].Rect[branching.axis].(Measure)) == false {
-			return branching.segments[i].Rect[branching.axis].(Measure).Smaller(branching.segments[j].Rect[branching.axis].(Measure))
 		}
 	}
 
@@ -189,23 +187,19 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 				maxGiniAxis = axis
 				maxGiniMid = mid
 			}
-		case Measure:
-			var maxCounter = 0
-			var lastMeasure = segmentBranch.segments[0].Rect[axis].(Measure)
-			var counter = 0
+		case Scatters:
+			var scatterMap = make(map[Measure]int)
 			for _, seg := range segmentBranch.segments {
-				if seg.Rect[axis].(Measure).Equal(lastMeasure) {
-					counter += 1
-					continue
-				} else {
-					if counter > maxCounter {
-						maxCounter = counter
-					}
-					lastMeasure = seg.Rect[axis].(Measure)
-					counter = 1
+				for _, s := range seg.Rect[axis].(Scatters) {
+					scatterMap[s] = scatterMap[s] + 1
 				}
 			}
-
+			var maxCounter = 0
+			for _, n := range scatterMap {
+				if n > maxCounter {
+					maxCounter = n
+				}
+			}
 
 			p := float64(maxCounter) * 1.0 / float64(len(segments))
 			axisJini := 1 - p*p - (1-p)*(1-p)
@@ -250,14 +244,15 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 				segmentBranch.max = seg.Rect[maxGiniAxis].(Interval)[1]
 			}
 		}
-	case Measure:
+	case Scatters:
 		segmentBranch.hashSegments = make(map[Measure][]*Segment)
 		for _, seg := range segmentBranch.segments {
-			key := seg.Rect[segmentBranch.axis].(Measure)
-			if _, ok := segmentBranch.hashSegments[key]; ok {
-				segmentBranch.hashSegments[key] = append(segmentBranch.hashSegments[key], seg)
-			} else {
-				segmentBranch.hashSegments[key] = []*Segment{seg}
+			for _, key := range seg.Rect[segmentBranch.axis].(Scatters) {
+				if _, ok := segmentBranch.hashSegments[key]; ok {
+					segmentBranch.hashSegments[key] = append(segmentBranch.hashSegments[key], seg)
+				} else {
+					segmentBranch.hashSegments[key] = []*Segment{seg}
+				}
 			}
 		}
 	}

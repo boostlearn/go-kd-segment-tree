@@ -289,3 +289,13 @@ type Interval [2]Measure
 func (i Interval) Contains(p Measure) bool {
 	return p.BiggerOrEqual(i[0]) && p.SmallerOrEqual(i[1])
 }
+
+type Scatters []Measure
+func (s Scatters) Contains(p Measure) bool {
+	for _, m := range s {
+		if m.Equal(p) {
+			return true
+		}
+	}
+	return false
+}
