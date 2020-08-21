@@ -283,3 +283,9 @@ func (f MeasureMax) SmallerOrEqual(b interface{}) bool {
 func (f MeasureMax) String() string {
 	return fmt.Sprintf("<+INFINITE>")
 }
+
+type Interval [2]Measure
+
+func (i Interval) Contains(p Measure) bool {
+	return p.BiggerOrEqual(i[0]) && p.SmallerOrEqual(i[1])
+}

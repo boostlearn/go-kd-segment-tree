@@ -8,18 +8,30 @@ import (
 	"strings"
 )
 
-func (r Rect) Clone() Rect {
+func (rect Rect) Clone() Rect {
 	var newRect Rect
-	for _, r := range r {
-		newRect = append(newRect, [2]Measure{r[0], r[1]})
+	for _, d := range rect {
+		switch d.(type) {
+		case Interval:
+			newRect = append(newRect, Interval{d.(Interval)[0], d.(Interval)[1]})
+		case Measure:
+			newRect = append(newRect, d.(Measure))
+		}
+
 	}
 	return newRect
 }
 
-func (r Rect) Key() string {
+func (rect Rect) Key() string {
 	var dimKeys []string
-	for _, r := range r {
-		dimKeys = append(dimKeys, fmt.Sprintf("%v_%v", r[0], r[1]))
+	for _, d := range rect {
+		switch d.(type) {
+		case Interval:
+			dimKeys = append(dimKeys, fmt.Sprintf("%v_%v", d.(Interval)[0], d.(Interval)[1]))
+		case Measure:
+			dimKeys = append(dimKeys, fmt.Sprintf("%v", d.(Measure)))
+		}
+
 	}
 	return strings.Join(dimKeys, ":")
 }
@@ -27,23 +39,26 @@ func (r Rect) Key() string {
 type Segment struct {
 	Rect Rect
 	Data mapset.Set
-
 	rnd float64
 }
 
-func (s *Segment) Range(axis int) (Measure, Measure) {
-	return s.Rect[axis][0], s.Rect[axis][1]
-}
-
-func (r Rect) Contains(p Point) bool {
-	if len(r) != len(p) {
+func (rect Rect) Contains(p Point) bool {
+	if len(rect) != len(p) {
 		return false
 	}
 
-	for i, r := range r {
-		if r[0].Bigger(p[i]) || r[1].Smaller(p[i]) {
-			return false
+	for axis, d := range rect {
+		switch d.(type) {
+		case Interval:
+			if d.(Interval)[0].Bigger(p[axis]) || d.(Interval)[1].Smaller(p[axis]) {
+				return false
+			}
+		case Measure:
+			if d.(Measure).Equal(p[axis]) == false {
+				return false
+			}
 		}
+
 	}
 
 	return true
@@ -51,17 +66,6 @@ func (r Rect) Contains(p Point) bool {
 
 func (s *Segment) String() string {
 	return fmt.Sprintf("{%v, %v}", s.Rect, s.Data)
-}
-
-func (s *Segment) SliceClone(axis int, start Measure, end Measure) *Segment {
-	newSegment := &Segment{
-		Rect: s.Rect.Clone(),
-		Data: s.Data.Clone(),
-	}
-
-	newSegment.Rect[axis][0] = start
-	newSegment.Rect[axis][1] = end
-	return newSegment
 }
 
 func (s *Segment) Clone() *Segment {
@@ -72,44 +76,51 @@ func (s *Segment) Clone() *Segment {
 	return newSegment
 }
 
-
 type SegmentBranching struct {
 	axis     int
+	gini float64
 	segments []*Segment
 
 	mid int
 	min Measure
 	max Measure
-
-	GiniCoefficient float64
-
 	midSeg *Segment
 	left   []*Segment
 	right  []*Segment
+
+	hashSegments map[Measure][]*Segment
 }
 
-func (b *SegmentBranching) Len() int {
-	return len(b.segments)
+func (branching *SegmentBranching) Len() int {
+	return len(branching.segments)
 }
 
-func (b *SegmentBranching) Less(i, j int) bool {
-	if b.segments[i].Rect[b.axis][0] != b.segments[j].Rect[b.axis][0] {
-		return b.segments[i].Rect[b.axis][0].Smaller(b.segments[j].Rect[b.axis][0])
-	} else {
-		if b.segments[i].rnd == 0 {
-			b.segments[i].rnd = rand.Float64()
+func (branching *SegmentBranching) Less(i, j int) bool {
+	switch branching.segments[i].Rect[branching.axis].(type) {
+	case Interval:
+		if branching.segments[i].Rect[branching.axis].(Interval)[0].Equal(branching.segments[j].Rect[branching.axis].(Interval)[0]) == false {
+			return branching.segments[i].Rect[branching.axis].(Interval)[0].Smaller(branching.segments[j].Rect[branching.axis].(Interval)[0])
 		}
-
-		if b.segments[j].rnd == 0 {
-			b.segments[j].rnd = rand.Float64()
+	case Measure:
+		if branching.segments[i].Rect[branching.axis].(Measure).Equal(branching.segments[j].Rect[branching.axis].(Measure)) == false {
+			return branching.segments[i].Rect[branching.axis].(Measure).Smaller(branching.segments[j].Rect[branching.axis].(Measure))
 		}
-
-		return b.segments[i].rnd < b.segments[j].rnd
 	}
+
+	if branching.segments[i].rnd == 0 {
+		branching.segments[i].rnd = rand.Float64()
+	}
+
+	if branching.segments[j].rnd == 0 {
+		branching.segments[j].rnd = rand.Float64()
+	}
+
+	return branching.segments[i].rnd < branching.segments[j].rnd
+
 }
 
-func (b *SegmentBranching) Swap(i, j int) {
-	b.segments[i], b.segments[j] = b.segments[j], b.segments[i]
+func (branching *SegmentBranching) Swap(i, j int) {
+	branching.segments[i], branching.segments[j] = branching.segments[j], branching.segments[i]
 }
 
 func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
@@ -128,53 +139,81 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 		segmentBranch.axis = axis
 		sort.Sort(segmentBranch)
 
-		start := 0
-		end := len(segmentBranch.segments) - 1
-		for start <= end && segmentBranch.segments[start].Rect[axis][0].Equal(MeasureMin{}) {
-			start += 1
-		}
-		for start <= end && segmentBranch.segments[start].Rect[axis][0].Equal(MeasureMax{}) {
-			end -= 1
-		}
-		if start == end {
-			continue
-		}
-
-		mid := (start + end)/2
-		for mid > 0 {
-			if segmentBranch.segments[mid-1].Rect[axis][0].Equal(segmentBranch.segments[mid].Rect[axis][0]) {
-				mid -= 1
+		switch segments[0].Rect[axis].(type) {
+		case Interval:
+			start := 0
+			end := len(segmentBranch.segments) - 1
+			for start <= end && segmentBranch.segments[start].Rect[axis].(Interval)[0].Equal(MeasureMin{}) {
+				start += 1
+			}
+			for start <= end && segmentBranch.segments[start].Rect[axis].(Interval)[0].Equal(MeasureMax{}) {
+				end -= 1
+			}
+			if start == end {
 				continue
 			}
-			break
-		}
-		midSeg := segmentBranch.segments[mid]
 
-		leftNum := 0
-		rightNum := 0
-		for _, seg := range segments {
-			if seg.Rect[axis][1].Smaller(midSeg.Rect[axis][0]) {
-				leftNum += 1
-			} else if seg.Rect[axis][0].BiggerOrEqual(midSeg.Rect[axis][0]) {
-				rightNum += 1
-			} else {
-				leftNum += 1
-				rightNum += 1
+			mid := (start + end) / 2
+			for mid > 0 {
+				if segmentBranch.segments[mid-1].Rect[axis].(Interval)[0].Equal(segmentBranch.segments[mid].Rect[axis].(Interval)[0]) {
+					mid -= 1
+					continue
+				}
+				break
 			}
-		}
+			midSeg := segmentBranch.segments[mid]
 
-		p := 0.0
-		if leftNum < rightNum {
-			p = float64(rightNum) * 1.0 / float64(len(segments))
-		} else {
-			p = float64(leftNum) * 1.0 / float64(len(segments))
-		}
-		axisJini := 1 - p*p - (1-p)*(1-p)
+			leftNum := 0
+			rightNum := 0
+			for _, seg := range segments {
+				if seg.Rect[axis].(Interval)[1].Smaller(midSeg.Rect[axis].(Interval)[0]) {
+					leftNum += 1
+				} else if seg.Rect[axis].(Interval)[0].BiggerOrEqual(midSeg.Rect[axis].(Interval)[0]) {
+					rightNum += 1
+				} else {
+					leftNum += 1
+					rightNum += 1
+				}
+			}
 
-		if axisJini > maxGiniCoefficient {
-			maxGiniCoefficient = axisJini
-			maxGiniAxis = axis
-			maxGiniMid = mid
+			p := 0.0
+			if leftNum < rightNum {
+				p = float64(rightNum) * 1.0 / float64(len(segments))
+			} else {
+				p = float64(leftNum) * 1.0 / float64(len(segments))
+			}
+			axisJini := 1 - p*p - (1-p)*(1-p)
+
+			if axisJini > maxGiniCoefficient {
+				maxGiniCoefficient = axisJini
+				maxGiniAxis = axis
+				maxGiniMid = mid
+			}
+		case Measure:
+			var maxCounter = 0
+			var lastMeasure = segmentBranch.segments[0].Rect[axis].(Measure)
+			var counter = 0
+			for _, seg := range segmentBranch.segments {
+				if seg.Rect[axis].(Measure).Equal(lastMeasure) {
+					counter += 1
+					continue
+				} else {
+					if counter > maxCounter {
+						maxCounter = counter
+					}
+					lastMeasure = seg.Rect[axis].(Measure)
+					counter = 1
+				}
+			}
+
+
+			p := float64(maxCounter) * 1.0 / float64(len(segments))
+			axisJini := 1 - p*p - (1-p)*(1-p)
+
+			if axisJini > maxGiniCoefficient {
+				maxGiniCoefficient = axisJini
+				maxGiniAxis = axis
+			}
 		}
 	}
 
@@ -183,30 +222,42 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 	}
 
 	segmentBranch.axis = maxGiniAxis
-	segmentBranch.GiniCoefficient = maxGiniCoefficient
+	segmentBranch.gini = maxGiniCoefficient
 
-	sort.Sort(segmentBranch)
-	segmentBranch.mid = maxGiniMid
-	segmentBranch.midSeg = segmentBranch.segments[segmentBranch.mid]
-	segmentBranch.min = segmentBranch.midSeg.Rect[maxGiniAxis][0]
-	segmentBranch.max = segmentBranch.midSeg.Rect[maxGiniAxis][1]
+	switch segments[0].Rect[segmentBranch.axis].(type) {
+	case Interval:
+		sort.Sort(segmentBranch)
+		segmentBranch.mid = maxGiniMid
+		segmentBranch.midSeg = segmentBranch.segments[segmentBranch.mid]
+		segmentBranch.min = segmentBranch.midSeg.Rect[maxGiniAxis].(Interval)[0]
+		segmentBranch.max = segmentBranch.midSeg.Rect[maxGiniAxis].(Interval)[1]
 
-	for _, seg := range segments {
-		if seg.Rect[maxGiniAxis][1].Smaller(segmentBranch.midSeg.Rect[maxGiniAxis][0]) {
-			segmentBranch.left = append(segmentBranch.left, seg)
-		} else if seg.Rect[maxGiniAxis][0].BiggerOrEqual(segmentBranch.midSeg.Rect[maxGiniAxis][0]) {
-			segmentBranch.right = append(segmentBranch.right, seg)
-		} else {
-			segmentBranch.left = append(segmentBranch.left, seg.Clone())
-			segmentBranch.right = append(segmentBranch.right, seg)
+		for _, seg := range segments {
+			if seg.Rect[maxGiniAxis].(Interval)[1].Smaller(segmentBranch.midSeg.Rect[maxGiniAxis].(Interval)[0]) {
+				segmentBranch.left = append(segmentBranch.left, seg)
+			} else if seg.Rect[maxGiniAxis].(Interval)[0].BiggerOrEqual(segmentBranch.midSeg.Rect[maxGiniAxis].(Interval)[0]) {
+				segmentBranch.right = append(segmentBranch.right, seg)
+			} else {
+				segmentBranch.left = append(segmentBranch.left, seg.Clone())
+				segmentBranch.right = append(segmentBranch.right, seg)
+			}
+
+			if seg.Rect[maxGiniAxis].(Interval)[0].Smaller(segmentBranch.min) {
+				segmentBranch.min = seg.Rect[maxGiniAxis].(Interval)[0]
+			}
+
+			if seg.Rect[maxGiniAxis].(Interval)[1].Bigger(segmentBranch.max) {
+				segmentBranch.max = seg.Rect[maxGiniAxis].(Interval)[1]
+			}
 		}
-
-		if seg.Rect[maxGiniAxis][0].Smaller(segmentBranch.min) {
-			segmentBranch.min = seg.Rect[maxGiniAxis][0]
-		}
-
-		if seg.Rect[maxGiniAxis][1].Bigger(segmentBranch.max) {
-			segmentBranch.max = seg.Rect[maxGiniAxis][1]
+	case Measure:
+		for _, seg := range segmentBranch.segments {
+			key := seg.Rect[segmentBranch.axis].(Measure)
+			if _, ok := segmentBranch.hashSegments[key]; ok {
+				segmentBranch.hashSegments[key] = append(segmentBranch.hashSegments[key], seg)
+			} else {
+				segmentBranch.hashSegments[key] = []*Segment{seg}
+			}
 		}
 	}
 
@@ -220,7 +271,7 @@ func MergeSegments(segments []*Segment) []*Segment {
 		rectKey := seg.Rect.Key()
 		if s, ok := uniqMap[rectKey]; ok {
 			s.Data = s.Data.Union(seg.Data)
-		}else {
+		} else {
 			newSegments = append(newSegments, seg)
 		}
 	}

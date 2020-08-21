@@ -7,7 +7,7 @@ import (
 )
 
 type Point []Measure
-type Rect [][2]Measure
+type Rect []interface{}
 
 const DefaultTreeLevelMax = 16
 const DefaultLeafDataMin = 16
@@ -22,7 +22,7 @@ type Tree struct {
 	branchingGiniMin float64
 
 	segments []*Segment
-	root     *TreeNode
+	root     TreeNode
 }
 
 type TreeOptions struct {
@@ -65,7 +65,7 @@ func (tree *Tree) String() string {
 	tree.mu.RLock()
 	defer tree.mu.RUnlock()
 
-	return fmt.Sprintf("%v", tree.root.Dump(""))
+	return fmt.Sprintf("%v", tree.root.Dumps(""))
 }
 
 func (tree *Tree) Add(rect Rect, data interface{}) {
