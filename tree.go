@@ -61,7 +61,7 @@ func (tree *Tree) Search(p Point) []interface{} {
 	return tree.root.Search(p)
 }
 
-func (tree *Tree) String() string {
+func (tree *Tree) Dumps() string {
 	tree.mu.RLock()
 	defer tree.mu.RUnlock()
 

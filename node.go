@@ -158,6 +158,7 @@ func NewNode(segments []*Segment, level int, leafNodeMin int, miniJini float64) 
 			Axis:  axisSegments.axis,
 			Level: level,
 			Gini:  axisSegments.gini,
+			child: make(map[Measure]TreeNode),
 		}
 		for childKey, childSegments := range axisSegments.hashSegments {
 			node.child[childKey] = NewNode(childSegments, level-1, leafNodeMin, miniJini)

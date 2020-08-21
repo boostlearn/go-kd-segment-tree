@@ -251,6 +251,7 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 			}
 		}
 	case Measure:
+		segmentBranch.hashSegments = make(map[Measure][]*Segment)
 		for _, seg := range segmentBranch.segments {
 			key := seg.Rect[segmentBranch.axis].(Measure)
 			if _, ok := segmentBranch.hashSegments[key]; ok {

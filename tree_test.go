@@ -9,14 +9,15 @@ import (
 var testRects []Rect
 var searchPoint []Point
 var rectNum int = 10000
-var dimNum int = 3
+var realDimNum int = 3
+var scatterDimNum int = 3
 var targetRate float64 = 1.0
 
 func init() {
 	for i := 0; i < rectNum; i++ {
 		rect := Rect{}
 		point := Point{}
-		for j := 0; j < dimNum; j++ {
+		for j := 0; j < realDimNum; j++ {
 			k := rand.Float64()
 			if rand.Float64() < targetRate {
 				rect = append(rect, Interval{FloatMeasure(k), FloatMeasure(k + 0.001)})
@@ -25,6 +26,13 @@ func init() {
 			}
 			point = append(point, FloatMeasure(k))
 		}
+
+		for j := 0; j < scatterDimNum; j++ {
+			k := rand.Intn(10000)
+			rect = append(rect, FloatMeasure(k))
+			point = append(point, FloatMeasure(rand.Intn(10000)))
+		}
+
 		testRects = append(testRects, rect)
 		searchPoint = append(searchPoint, point)
 	}
