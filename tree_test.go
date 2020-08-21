@@ -8,9 +8,9 @@ import (
 
 var testRects []Rect
 var searchPoint []Point
-var rectNum int = 10000
-var realDimNum int = 3
-var scatterDimNum int = 3
+var rectNum int = 100000
+var realDimNum int = 10
+var scatterDimNum int = 30
 var targetRate float64 = 1.0
 
 func init() {
@@ -28,9 +28,9 @@ func init() {
 		}
 
 		for j := 0; j < scatterDimNum; j++ {
-			k := rand.Intn(10000)
+			k := rand.Intn(100)
 			rect = append(rect, Scatters{FloatMeasure(k)})
-			point = append(point, FloatMeasure(rand.Intn(10000)))
+			point = append(point, FloatMeasure(rand.Intn(100)))
 		}
 
 		testRects = append(testRects, rect)
