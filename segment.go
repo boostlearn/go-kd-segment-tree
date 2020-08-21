@@ -15,9 +15,11 @@ func (rect Rect) Clone() Rect {
 		case Interval:
 			newRect = append(newRect, Interval{d.(Interval)[0], d.(Interval)[1]})
 		case Scatters:
+			var newSc Scatters
 			for _, s := range d.(Scatters) {
-				newRect = append(newRect, s)
+				newSc = append(newSc, s)
 			}
+			newRect = append(newRect, newSc)
 		}
 
 	}
@@ -134,11 +136,11 @@ func NewSegmentBranch(segments []*Segment, minJini float64) *SegmentBranching {
 	maxGiniMid := 0
 	maxGiniCoefficient := -1.0
 	for axis, _ := range segments[0].Rect {
-		segmentBranch.axis = axis
-		sort.Sort(segmentBranch)
-
 		switch segments[0].Rect[axis].(type) {
 		case Interval:
+			segmentBranch.axis = axis
+			sort.Sort(segmentBranch)
+
 			start := 0
 			end := len(segmentBranch.segments) - 1
 			for start <= end && segmentBranch.segments[start].Rect[axis].(Interval)[0].Equal(MeasureMin{}) {
