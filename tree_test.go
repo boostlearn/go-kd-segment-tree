@@ -1,7 +1,6 @@
 package go_kd_segment_tree
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -13,6 +12,7 @@ var rectNum int = 10000
 var dimNum int = 3
 var targetRate float64 = 1.0
 
+
 func init() {
 	for i := 0; i < rectNum; i++ {
 		rect := Rect{}
@@ -20,7 +20,7 @@ func init() {
 		for j := 0; j < dimNum; j++ {
 			k := rand.Float64()
 			if rand.Float64() < targetRate {
-				rect = append(rect, [2]Measure{FloatMeasure(k), FloatMeasure(k + 0.0001)})
+				rect = append(rect, [2]Measure{FloatMeasure(k), FloatMeasure(k + 0.001)})
 			} else {
 				rect = append(rect, [2]Measure{MeasureMin{}, MeasureMax{}})
 			}
@@ -69,16 +69,16 @@ func TestNewTree(t *testing.T) {
 
 func BenchmarkTree_Search(b *testing.B) {
 	tree := NewTree(&TreeOptions{
-		TreeLevelMax:     16,
-		LeafNodeMin:      16,
-		BranchingGiniMin: 0.2,
+		TreeLevelMax:     128,
+		LeafNodeMin:      1,
+		BranchingGiniMin: 0.1,
 	})
 	for i, rect := range testRects {
 		tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
 	}
 	tree.Build()
 
-	fmt.Println("tree:", tree.String())
+	//fmt.Println("tree:", tree.String())
 
 	b.ReportAllocs()
 	b.ResetTimer()
