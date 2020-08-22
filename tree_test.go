@@ -8,29 +8,37 @@ import (
 
 var testRects []Rect
 var searchPoint []Point
-var rectNum int = 100000
-var realDimNum int = 10
-var scatterDimNum int = 30
+var dimType map[interface{}]DimType
+var rectNum int = 10000
+var realDimNum int = 3
+var scatterDimNum int = 0
 var targetRate float64 = 1.0
 
 func init() {
+	dimType = make(map[interface{}]DimType)
+	for j := 0; j < realDimNum; j++ {
+		dimType[j] = DimTypeReal
+	}
+
+	for j := 0; j < scatterDimNum; j++ {
+		dimType[j+realDimNum] = DimTypeDiscrete
+	}
+
 	for i := 0; i < rectNum; i++ {
-		rect := Rect{}
-		point := Point{}
+		rect := make(Rect)
+		point := make(Point)
 		for j := 0; j < realDimNum; j++ {
 			k := rand.Float64()
 			if rand.Float64() < targetRate {
-				rect = append(rect, Interval{FloatMeasure(k), FloatMeasure(k + 0.001)})
-			} else {
-				rect = append(rect, Interval{MeasureMin{}, MeasureMax{}})
+				rect[j] = Interval{FloatMeasure(k), FloatMeasure(k + 0.001)}
 			}
-			point = append(point, FloatMeasure(k))
+			point[j] = FloatMeasure(k)
 		}
 
 		for j := 0; j < scatterDimNum; j++ {
 			k := rand.Intn(100)
-			rect = append(rect, Scatters{FloatMeasure(k)})
-			point = append(point, FloatMeasure(rand.Intn(100)))
+			rect[j+realDimNum] = Scatters{FloatMeasure(k)}
+			point[j+realDimNum] = FloatMeasure(rand.Intn(100))
 		}
 
 		testRects = append(testRects, rect)
@@ -55,7 +63,7 @@ func TestNewTree(t *testing.T) {
 	tree := NewTree(&TreeOptions{
 		TreeLevelMax:     0,
 		LeafNodeMin:      0,
-		BranchingGiniMin: 1.0,
+		BranchingDecreasePercentMin: 1.0,
 	})
 	for i, rect := range testRects[:testSize] {
 		tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
@@ -75,13 +83,13 @@ func TestNewTree(t *testing.T) {
 */
 
 func BenchmarkTree_Search(b *testing.B) {
-	tree := NewTree(&TreeOptions{
+	tree := NewTree(dimType, &TreeOptions{
 		TreeLevelMax:     16,
 		LeafNodeMin:      2,
-		BranchingGiniMin: 0.2,
+		BranchingDecreasePercentMin: 0.2,
 	})
 	for i, rect := range testRects {
-		tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
+		_ = tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
 	}
 	tree.Build()
 

@@ -1,25 +1,28 @@
 package go_kd_segment_tree
 
 import (
+	"errors"
 	"fmt"
 	mapset "github.com/deckarep/golang-set"
 	"sync"
 )
 
-type Point []Measure
-type Rect []interface{}
-
 const DefaultTreeLevelMax = 16
 const DefaultLeafDataMin = 16
-const DefaultBranchGiniMin = 0.2
+const DefaultBranchDecreasePercentMin = 0.2
+
+type DimType struct{ Type int }
+
+var DimTypeDiscrete = DimType{Type: 0}
+var DimTypeReal = DimType{Type: 1}
 
 type Tree struct {
 	mu       sync.RWMutex
 	updateMu sync.Mutex
 
-	treeLevelMax     int
-	leafNodeMin      int
-	branchingGiniMin float64
+	dimTypes map[interface{}]DimType
+
+	options *TreeOptions
 
 	segments []*Segment
 	root     TreeNode
@@ -28,10 +31,10 @@ type Tree struct {
 type TreeOptions struct {
 	TreeLevelMax     int
 	LeafNodeMin      int
-	BranchingGiniMin float64
+	BranchingDecreasePercentMin float64
 }
 
-func NewTree(opts *TreeOptions) *Tree {
+func NewTree(dimTypes map[interface{}]DimType, opts *TreeOptions) *Tree {
 	if opts == nil {
 		opts = &TreeOptions{}
 	}
@@ -44,13 +47,12 @@ func NewTree(opts *TreeOptions) *Tree {
 		opts.LeafNodeMin = DefaultLeafDataMin
 	}
 
-	if opts.BranchingGiniMin == 0.0 {
-		opts.BranchingGiniMin = DefaultBranchGiniMin
+	if opts.BranchingDecreasePercentMin == 0.0 {
+		opts.BranchingDecreasePercentMin = DefaultBranchDecreasePercentMin
 	}
 	return &Tree{
-		treeLevelMax:     opts.TreeLevelMax,
-		leafNodeMin:      opts.LeafNodeMin,
-		branchingGiniMin: opts.BranchingGiniMin,
+		dimTypes: dimTypes,
+		options:  opts,
 	}
 }
 
@@ -68,9 +70,22 @@ func (tree *Tree) Dumps() string {
 	return fmt.Sprintf("%v", tree.root.Dumps(""))
 }
 
-func (tree *Tree) Add(rect Rect, data interface{}) {
+func (tree *Tree) Add(rect Rect, data interface{}) error {
 	tree.updateMu.Lock()
 	defer tree.updateMu.Unlock()
+
+	for name, d := range rect {
+		switch d.(type) {
+		case Interval:
+			if tree.dimTypes[name] != DimTypeReal {
+				return errors.New(fmt.Sprintf("dim type error:%v", name))
+			}
+		case Scatters:
+			if tree.dimTypes[name] != DimTypeDiscrete {
+				return errors.New(fmt.Sprintf("dim type error:%v", name))
+			}
+		}
+	}
 
 	seg := &Segment{
 		Rect: rect.Clone(),
@@ -78,6 +93,7 @@ func (tree *Tree) Add(rect Rect, data interface{}) {
 	}
 
 	tree.segments = append(tree.segments, seg)
+	return nil
 }
 
 func (tree *Tree) Remove(data interface{}) {
@@ -107,7 +123,7 @@ func (tree *Tree) Build() {
 		return
 	}
 
-	newNode := NewNode(tree.segments, tree.treeLevelMax, tree.leafNodeMin, tree.branchingGiniMin)
+	newNode := NewNode(tree.segments, tree, 0)
 
 	tree.mu.Lock()
 	tree.root = newNode
