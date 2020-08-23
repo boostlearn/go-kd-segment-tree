@@ -99,17 +99,19 @@ func getRealDimSegmentsDecrease(segments []*Segment, dimName interface{}) (int, 
 
 	sort.Sort(&sortSegments{dimName: dimName, segments: dimSegments})
 
-	measures := mapset.NewSet()
+	var starts []Measure
+	var ends []Measure
 	for _, seg := range dimSegments {
-		measures.Add(seg.Rect[dimName].(Interval)[0])
-		measures.Add(seg.Rect[dimName].(Interval)[1])
+		starts = append(starts, seg.Rect[dimName].(Interval)[0])
+		ends = append(ends, seg.Rect[dimName].(Interval)[1])
 	}
-	var allMeasures []Measure
-	for _, t := range measures.ToSlice() {
-		allMeasures = append(allMeasures, t.(Measure))
+	sort.Sort(&sortMeasures{measures:starts})
+	sort.Sort(&sortMeasures{measures:ends})
+	pos := 0
+	for pos < len(starts) - 1 && starts[pos].Smaller(ends[len(ends) - 1 - pos]) {
+		pos += 1
 	}
-	sort.Stable(&sortMeasures{measures: allMeasures})
-	midMeasure := allMeasures[len(allMeasures)/2]
+	midMeasure := starts[pos]
 
 	leftNum := 0
 	rightNum := 0

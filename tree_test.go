@@ -10,7 +10,7 @@ var testRects []Rect
 var searchPoint []Point
 var dimType map[interface{}]DimType
 var rectNum int = 10000
-var realDimNum int = 10
+var realDimNum int = 3
 var scatterDimNum int = 0
 var targetRate float64 = 1.0
 
