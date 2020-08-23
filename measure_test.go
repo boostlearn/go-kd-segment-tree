@@ -6,9 +6,9 @@ import (
 )
 
 func TestInterval_Contains(t *testing.T) {
-	a := FloatMeasure(0.1)
+	a := MeasureFloat(0.1)
 	var r = 1
-	b := Interval{FloatMeasure(0.2), FloatMeasure(r)}
+	b := Interval{MeasureFloat(0.2), MeasureFloat(r)}
 
 	var c interface{}
 	c = a

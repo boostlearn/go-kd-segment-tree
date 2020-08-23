@@ -19,16 +19,16 @@ func NewNode(segments []*Segment,
 		}
 	}
 
-	axisName, decreasePercent := GetBestBranchingAxisName(segments, tree.dimTypes)
+	dimName, decreasePercent := findBestBranchingDim(segments, tree.dimTypes)
 	if decreasePercent < tree.options.BranchingDecreasePercentMin {
 		return &LeafNode{
 			Segments: MergeSegments(segments),
 		}
 	}
 
-	switch tree.dimTypes[axisName].Type {
+	switch tree.dimTypes[dimName].Type {
 	case DimTypeReal.Type:
-		node, left, right := NewBinaryNode(tree, segments, axisName, decreasePercent, level)
+		node, left, right := NewBinaryNode(tree, segments, dimName, decreasePercent, level)
 		if len(left) > 0 {
 			node.Left = NewNode(left, tree, level+1)
 		}
@@ -37,7 +37,7 @@ func NewNode(segments []*Segment,
 		}
 		return node
 	case DimTypeDiscrete.Type:
-		node, children := NewHashNode(tree, segments, axisName, decreasePercent, level)
+		node, children := NewHashNode(tree, segments, dimName, decreasePercent, level)
 		for childKey, childSegments := range children {
 			node.child[childKey] = NewNode(childSegments, tree, level+1)
 		}
@@ -46,9 +46,7 @@ func NewNode(segments []*Segment,
 	return nil
 }
 
-
-
-func GetBestBranchingAxisName (
+func findBestBranchingDim(
 	segments []*Segment,
 	dimTypes map[interface{}]DimType,
 ) (interface{}, float64) {
@@ -56,24 +54,25 @@ func GetBestBranchingAxisName (
 		return nil, 0
 	}
 
-	var maxDecreaseAxisName interface{}
+	var maxDecreaseDimName interface{}
 	var maxDecrease int
-	for axisName, dimType := range dimTypes {
-		if dimType.Type == DimTypeReal.Type {
-			decreaseC,_ := RealDimSegmentsDecrease(segments, axisName)
+	for dimName, dimType := range dimTypes {
+		switch dimType.Type {
+		case DimTypeReal.Type:
+			decreaseC, _ := getRealDimSegmentsDecrease(segments, dimName)
 			if decreaseC > maxDecrease {
 				maxDecrease = decreaseC
-				maxDecreaseAxisName = axisName
+				maxDecreaseDimName = dimName
 			}
-		} else if dimType.Type == DimTypeDiscrete.Type {
-			decreaseC,_ := DiscreteDimSegmentsDecrease(segments, axisName)
+		case DimTypeDiscrete.Type:
+			decreaseC, _ := getDiscreteDimSegmentsDecrease(segments, dimName)
 			if decreaseC > maxDecrease {
 				maxDecrease = decreaseC
-				maxDecreaseAxisName = axisName
+				maxDecreaseDimName = dimName
 			}
 		}
 	}
 
 	p := float64(maxDecrease) * 1.0 / float64(len(segments))
-	return maxDecreaseAxisName, p
+	return maxDecreaseDimName, p
 }

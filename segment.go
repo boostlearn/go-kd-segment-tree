@@ -26,7 +26,7 @@ func (s *Segment) Clone() *Segment {
 }
 
 type sortSegments struct {
-	axisName interface{}
+	dimName  interface{}
 	segments []*Segment
 }
 
@@ -35,8 +35,8 @@ func (s *sortSegments) Len() int {
 }
 
 func (s *sortSegments) Less(i, j int) bool {
-	iSeg, iSegOk := s.segments[i].Rect[s.axisName]
-	jSeg, jSegOk := s.segments[j].Rect[s.axisName]
+	iSeg, iSegOk := s.segments[i].Rect[s.dimName]
+	jSeg, jSegOk := s.segments[j].Rect[s.dimName]
 
 	if iSegOk == true && jSegOk == false {
 		return false
@@ -86,10 +86,10 @@ func (s *sortMeasures) Swap(i, j int) {
 		s.measures[j], s.measures[i]
 }
 
-func RealDimSegmentsDecrease(segments []*Segment, axisName interface{}) (int, Measure) {
+func getRealDimSegmentsDecrease(segments []*Segment, dimName interface{}) (int, Measure) {
 	var dimSegments []*Segment
 	for _, seg := range segments {
-		if seg.Rect[axisName] != nil {
+		if seg.Rect[dimName] != nil {
 			dimSegments = append(dimSegments, seg)
 		}
 	}
@@ -97,26 +97,26 @@ func RealDimSegmentsDecrease(segments []*Segment, axisName interface{}) (int, Me
 		return 0, nil
 	}
 
-	sort.Sort(&sortSegments{axisName: axisName, segments: dimSegments})
+	sort.Sort(&sortSegments{dimName: dimName, segments: dimSegments})
 
 	measures := mapset.NewSet()
 	for _, seg := range dimSegments {
-		measures.Add(seg.Rect[axisName].(Interval)[0])
-		measures.Add(seg.Rect[axisName].(Interval)[1])
+		measures.Add(seg.Rect[dimName].(Interval)[0])
+		measures.Add(seg.Rect[dimName].(Interval)[1])
 	}
 	var allMeasures []Measure
 	for _, t := range measures.ToSlice() {
 		allMeasures = append(allMeasures, t.(Measure))
 	}
-	sort.Stable(&sortMeasures{measures:allMeasures})
+	sort.Stable(&sortMeasures{measures: allMeasures})
 	midMeasure := allMeasures[len(allMeasures)/2]
 
 	leftNum := 0
 	rightNum := 0
 	for _, seg := range dimSegments {
-		if seg.Rect[axisName].(Interval)[1].Smaller(midMeasure) {
+		if seg.Rect[dimName].(Interval)[1].Smaller(midMeasure) {
 			leftNum += 1
-		} else if seg.Rect[axisName].(Interval)[0].BiggerOrEqual(midMeasure) {
+		} else if seg.Rect[dimName].(Interval)[0].BiggerOrEqual(midMeasure) {
 			rightNum += 1
 		}
 	}
@@ -129,10 +129,10 @@ func RealDimSegmentsDecrease(segments []*Segment, axisName interface{}) (int, Me
 
 }
 
-func DiscreteDimSegmentsDecrease(segments []*Segment, axisName interface{}) (int, Measure) {
+func getDiscreteDimSegmentsDecrease(segments []*Segment, dimName interface{}) (int, Measure) {
 	var dimSegments []*Segment
 	for _, seg := range segments {
-		if seg.Rect[axisName] != nil {
+		if seg.Rect[dimName] != nil {
 			dimSegments = append(dimSegments, seg)
 		}
 	}
@@ -140,9 +140,9 @@ func DiscreteDimSegmentsDecrease(segments []*Segment, axisName interface{}) (int
 		return 0, nil
 	}
 
-	var scatterMap= make(map[Measure]int)
+	var scatterMap = make(map[Measure]int)
 	for _, seg := range dimSegments {
-		for _, s := range seg.Rect[axisName].(Scatters) {
+		for _, s := range seg.Rect[dimName].(Scatters) {
 			scatterMap[s] = scatterMap[s] + 1
 		}
 	}

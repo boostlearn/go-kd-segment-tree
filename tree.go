@@ -29,8 +29,8 @@ type Tree struct {
 }
 
 type TreeOptions struct {
-	TreeLevelMax     int
-	LeafNodeMin      int
+	TreeLevelMax                int
+	LeafNodeMin                 int
 	BranchingDecreasePercentMin float64
 }
 

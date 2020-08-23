@@ -10,13 +10,11 @@ type BinaryNode struct {
 
 	Tree *Tree
 
-	AxisName interface{}
-	Level    int
-	DecreasePercent     float64
+	DimName         interface{}
+	Level           int
+	DecreasePercent float64
 
 	Mid Measure
-	Min Measure
-	Max Measure
 
 	Left  TreeNode
 	Right TreeNode
@@ -27,14 +25,11 @@ func (node *BinaryNode) Search(p Point) []interface{} {
 		return nil
 	}
 
-	if _, ok := p[node.AxisName]; ok == false {
+	if _, ok := p[node.DimName]; ok == false {
 		return nil
 	}
 
-	x := p[node.AxisName]
-	if x.Smaller(node.Min) || x.Bigger(node.Max) {
-		return nil
-	}
+	x := p[node.DimName]
 
 	if x.Smaller(node.Mid) {
 		if node.Left == nil {
@@ -54,48 +49,42 @@ func (node *BinaryNode) Dumps(prefix string) string {
 		return ""
 	}
 
-	return fmt.Sprintf("%s -bnode{axis:%d, decreasePercent:%v, mid:%v, min:%v, max:%v}\n%v\n%v\n", prefix,
-		node.AxisName, node.DecreasePercent, node.Mid, node.Min, node.Max,
+	return fmt.Sprintf("%s -bnode{dim:%d, decreasePercent:%v,mid:%v}\n%v\n%v\n", prefix,
+		node.DimName, node.DecreasePercent, node.Mid,
 		node.Left.Dumps(prefix+"    "), node.Right.Dumps(prefix+"    "))
 }
 
 func NewBinaryNode(tree *Tree,
 	segments []*Segment,
-	axisName interface{},
+	dimName interface{},
 	decreasePercent float64,
 	level int,
 ) (*BinaryNode, []*Segment, []*Segment) {
-	sort.Stable(&sortSegments{axisName:axisName, segments:segments})
+	sort.Stable(&sortSegments{dimName: dimName, segments: segments})
 
-	_, midMeasure := RealDimSegmentsDecrease(segments, axisName)
+	_, midMeasure := getRealDimSegmentsDecrease(segments, dimName)
 	if midMeasure == nil {
 		return nil, nil, nil
 	}
 
 	node := &BinaryNode{
-		Tree:tree,
-		AxisName: axisName,
-		Level:    level,
-		DecreasePercent:     decreasePercent,
-		Mid:      midMeasure,
+		Tree:            tree,
+		DimName:         dimName,
+		Level:           level,
+		DecreasePercent: decreasePercent,
+		Mid:             midMeasure,
 	}
 
 	var left []*Segment
 	var right []*Segment
 	for _, seg := range segments {
-		if seg.Rect[axisName] == nil {
+		if seg.Rect[dimName] == nil {
 			left = append(left, seg)
 			right = append(right, seg)
 			continue
 		}
 
-		mRange := seg.Rect[axisName].(Interval)
-		if mRange[0].Smaller(node.Min) {
-			node.Min = mRange[0]
-		}
-		if mRange[1].Bigger(node.Max) {
-			node.Max = mRange[1]
-		}
+		mRange := seg.Rect[dimName].(Interval)
 
 		if mRange[1].Smaller(midMeasure) {
 			left = append(left, seg)

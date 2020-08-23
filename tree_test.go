@@ -10,7 +10,7 @@ var testRects []Rect
 var searchPoint []Point
 var dimType map[interface{}]DimType
 var rectNum int = 10000
-var realDimNum int = 3
+var realDimNum int = 10
 var scatterDimNum int = 0
 var targetRate float64 = 1.0
 
@@ -30,15 +30,15 @@ func init() {
 		for j := 0; j < realDimNum; j++ {
 			k := rand.Float64()
 			if rand.Float64() < targetRate {
-				rect[j] = Interval{FloatMeasure(k), FloatMeasure(k + 0.001)}
+				rect[j] = Interval{MeasureFloat(k), MeasureFloat(k + 0.001)}
 			}
-			point[j] = FloatMeasure(k)
+			point[j] = MeasureFloat(k)
 		}
 
 		for j := 0; j < scatterDimNum; j++ {
 			k := rand.Intn(100)
-			rect[j+realDimNum] = Scatters{FloatMeasure(k)}
-			point[j+realDimNum] = FloatMeasure(rand.Intn(100))
+			rect[j+realDimNum] = Scatters{MeasureFloat(k)}
+			point[j+realDimNum] = MeasureFloat(rand.Intn(100))
 		}
 
 		testRects = append(testRects, rect)
@@ -84,9 +84,9 @@ func TestNewTree(t *testing.T) {
 
 func BenchmarkTree_Search(b *testing.B) {
 	tree := NewTree(dimType, &TreeOptions{
-		TreeLevelMax:     16,
-		LeafNodeMin:      2,
-		BranchingDecreasePercentMin: 0.2,
+		TreeLevelMax:                16,
+		LeafNodeMin:                 1,
+		BranchingDecreasePercentMin: 0.1,
 	})
 	for i, rect := range testRects {
 		_ = tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))

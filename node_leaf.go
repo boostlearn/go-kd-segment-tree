@@ -34,7 +34,6 @@ func (node *LeafNode) Dumps(prefix string) string {
 	return fmt.Sprintf("%s -leaf:{size=%v}", prefix, len(node.Segments))
 }
 
-
 func MergeSegments(segments []*Segment) []*Segment {
 	var newSegments []*Segment
 	var uniqMap = make(map[string]*Segment)

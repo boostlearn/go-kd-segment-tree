@@ -14,130 +14,130 @@ type Measure interface {
 	SmallerOrEqual(b interface{}) bool
 }
 
-type FloatMeasure float64
+type MeasureFloat float64
 
-func (a FloatMeasure) Bigger(b interface{}) bool {
+func (a MeasureFloat) Bigger(b interface{}) bool {
 	switch b.(type) {
-	case FloatMeasure:
-		return float64(a) > float64(b.(FloatMeasure))
+	case MeasureFloat:
+		return float64(a) > float64(b.(MeasureFloat))
 	}
 	return false
 }
 
-func (a FloatMeasure) Smaller(b interface{}) bool {
+func (a MeasureFloat) Smaller(b interface{}) bool {
 	switch b.(type) {
-	case FloatMeasure:
-		return float64(a) < float64(b.(FloatMeasure))
-	}
-	return false
-
-}
-
-func (a FloatMeasure) Equal(b interface{}) bool {
-	switch b.(type) {
-	case FloatMeasure:
-		return float64(a) == float64(b.(FloatMeasure))
-	}
-	return false
-}
-
-func (a FloatMeasure) BiggerOrEqual(b interface{}) bool {
-	switch b.(type) {
-	case FloatMeasure:
-		return float64(a) >= float64(b.(FloatMeasure))
+	case MeasureFloat:
+		return float64(a) < float64(b.(MeasureFloat))
 	}
 	return false
 
 }
 
-func (a FloatMeasure) SmallerOrEqual(b interface{}) bool {
+func (a MeasureFloat) Equal(b interface{}) bool {
 	switch b.(type) {
-	case FloatMeasure:
-		return float64(a) <= float64(b.(FloatMeasure))
+	case MeasureFloat:
+		return float64(a) == float64(b.(MeasureFloat))
 	}
 	return false
 }
 
-type StringMeasure string
-
-func (a StringMeasure) Bigger(b interface{}) bool {
+func (a MeasureFloat) BiggerOrEqual(b interface{}) bool {
 	switch b.(type) {
-	case StringMeasure:
-		return string(a) > string(b.(StringMeasure))
+	case MeasureFloat:
+		return float64(a) >= float64(b.(MeasureFloat))
+	}
+	return false
+
+}
+
+func (a MeasureFloat) SmallerOrEqual(b interface{}) bool {
+	switch b.(type) {
+	case MeasureFloat:
+		return float64(a) <= float64(b.(MeasureFloat))
 	}
 	return false
 }
 
-func (a StringMeasure) Smaller(b interface{}) bool {
+type MeasureString string
+
+func (a MeasureString) Bigger(b interface{}) bool {
 	switch b.(type) {
-	case StringMeasure:
-		return string(a) < string(b.(StringMeasure))
+	case MeasureString:
+		return string(a) > string(b.(MeasureString))
 	}
 	return false
 }
 
-func (a StringMeasure) Equal(b interface{}) bool {
+func (a MeasureString) Smaller(b interface{}) bool {
 	switch b.(type) {
-	case StringMeasure:
-		return string(a) == string(b.(StringMeasure))
+	case MeasureString:
+		return string(a) < string(b.(MeasureString))
 	}
 	return false
 }
 
-func (a StringMeasure) BiggerOrEqual(b interface{}) bool {
+func (a MeasureString) Equal(b interface{}) bool {
 	switch b.(type) {
-	case StringMeasure:
-		return string(a) >= string(b.(StringMeasure))
+	case MeasureString:
+		return string(a) == string(b.(MeasureString))
 	}
 	return false
 }
 
-func (a StringMeasure) SmallerOrEqual(b interface{}) bool {
+func (a MeasureString) BiggerOrEqual(b interface{}) bool {
 	switch b.(type) {
-	case StringMeasure:
-		return string(a) <= string(b.(StringMeasure))
+	case MeasureString:
+		return string(a) >= string(b.(MeasureString))
 	}
 	return false
 }
 
-type TimeMeasure time.Time
-
-func (f TimeMeasure) Bigger(b interface{}) bool {
+func (a MeasureString) SmallerOrEqual(b interface{}) bool {
 	switch b.(type) {
-	case TimeMeasure:
+	case MeasureString:
+		return string(a) <= string(b.(MeasureString))
+	}
+	return false
+}
+
+type MeasureTime time.Time
+
+func (f MeasureTime) Bigger(b interface{}) bool {
+	switch b.(type) {
+	case MeasureTime:
 		return time.Time(f).After(b.(time.Time))
 	}
 	return false
 }
 
-func (f TimeMeasure) Smaller(b interface{}) bool {
+func (f MeasureTime) Smaller(b interface{}) bool {
 	switch b.(type) {
-	case TimeMeasure:
+	case MeasureTime:
 		return time.Time(f).Before(b.(time.Time))
 	}
 	return false
 
 }
 
-func (f TimeMeasure) Equal(b interface{}) bool {
+func (f MeasureTime) Equal(b interface{}) bool {
 	switch b.(type) {
-	case TimeMeasure:
+	case MeasureTime:
 		return time.Time(f).Equal(b.(time.Time))
 	}
 	return false
 }
 
-func (f TimeMeasure) BiggerOrEqual(b interface{}) bool {
+func (f MeasureTime) BiggerOrEqual(b interface{}) bool {
 	switch b.(type) {
-	case TimeMeasure:
+	case MeasureTime:
 		return time.Time(f).After(b.(time.Time)) || time.Time(f).Equal(b.(time.Time))
 	}
 	return false
 }
 
-func (f TimeMeasure) SmallerOrEqual(b interface{}) bool {
+func (f MeasureTime) SmallerOrEqual(b interface{}) bool {
 	switch b.(type) {
-	case TimeMeasure:
+	case MeasureTime:
 		return time.Time(f).Before(b.(time.Time)) || time.Time(f).Equal(b.(time.Time))
 	}
 	return false
