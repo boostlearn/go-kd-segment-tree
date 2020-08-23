@@ -108,10 +108,10 @@ func getRealDimSegmentsDecrease(segments []*Segment, dimName interface{}) (int, 
 	sort.Sort(&sortMeasures{measures:starts})
 	sort.Sort(&sortMeasures{measures:ends})
 	pos := 0
-	for pos < len(starts) - 1 && starts[pos].Smaller(ends[len(ends) - 1 - pos]) {
+	for pos < len(starts) - 1 && ends[pos].Smaller(starts[len(ends) - 1 - pos]) {
 		pos += 1
 	}
-	midMeasure := starts[pos]
+	midMeasure := ends[pos]
 
 	leftNum := 0
 	rightNum := 0

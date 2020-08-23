@@ -10,7 +10,7 @@ var testRects []Rect
 var searchPoint []Point
 var dimType map[interface{}]DimType
 var rectNum int = 10000
-var realDimNum int = 3
+var realDimNum int = 30
 var scatterDimNum int = 0
 var targetRate float64 = 1.0
 
@@ -85,8 +85,8 @@ func TestNewTree(t *testing.T) {
 func BenchmarkTree_Search(b *testing.B) {
 	tree := NewTree(dimType, &TreeOptions{
 		TreeLevelMax:                16,
-		LeafNodeMin:                 1,
-		BranchingDecreasePercentMin: 0.1,
+		LeafNodeMin:                 16,
+		BranchingDecreasePercentMin: 0.2,
 	})
 	for i, rect := range testRects {
 		_ = tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
