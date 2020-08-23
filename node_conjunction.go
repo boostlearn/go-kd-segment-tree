@@ -53,7 +53,7 @@ func NewLogicNode(tree *Tree,
 	for dimName, dimType := range tree.dimTypes {
 		switch dimType.Type {
 		case DimTypeDiscrete.Type:
-			node.dimNode[dimName] = NewDiscreteLogicNode(segments, dimName)
+			node.dimNode[dimName] = NewDiscreteConjunctionNode(segments, dimName)
 		case DimTypeReal.Type:
 			node.dimNode[dimName] = NewConjunctionRealNode(segments, dimName)
 		}
@@ -151,7 +151,7 @@ func (node *ConjunctionDimDiscreteNode) Search(measure Measure) []*Segment {
 	return node.segments[measure]
 }
 
-func NewDiscreteLogicNode(segments []*Segment, dimName interface{}) *ConjunctionDimDiscreteNode {
+func NewDiscreteConjunctionNode(segments []*Segment, dimName interface{}) *ConjunctionDimDiscreteNode {
 	node := &ConjunctionDimDiscreteNode{
 		dimName:   dimName,
 		segments:     make(map[Measure][]*Segment),
