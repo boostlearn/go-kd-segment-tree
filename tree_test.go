@@ -9,10 +9,10 @@ import (
 var testRects []Rect
 var searchPoint []Point
 var dimType map[interface{}]DimType
-var rectNum int = 10000
-var realDimNum int = 30
-var scatterDimNum int = 0
-var targetRate float64 = 1.0
+var rectNum int = 1000
+var realDimNum int = 0
+var scatterDimNum int = 100
+var targetRate float64 = 0.1
 
 func init() {
 	dimType = make(map[interface{}]DimType)
@@ -36,9 +36,11 @@ func init() {
 		}
 
 		for j := 0; j < scatterDimNum; j++ {
-			k := rand.Intn(100)
-			rect[j+realDimNum] = Scatters{MeasureFloat(k)}
-			point[j+realDimNum] = MeasureFloat(rand.Intn(100))
+			k := rand.Intn(10000)
+			if rand.Float64() < targetRate {
+				rect[j+realDimNum] = Scatters{MeasureFloat(k)}
+			}
+			point[j+realDimNum] = MeasureFloat(rand.Intn(10000))
 		}
 
 		testRects = append(testRects, rect)

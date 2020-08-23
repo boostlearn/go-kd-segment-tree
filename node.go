@@ -21,8 +21,13 @@ func NewNode(segments []*Segment,
 
 	dimName, decreasePercent := findBestBranchingDim(segments, tree.dimTypes)
 	if decreasePercent < tree.options.BranchingDecreasePercentMin {
-		return &LeafNode{
-			Segments: MergeSegments(segments),
+		mergedSegments := MergeSegments(segments)
+		if len(mergedSegments) > tree.options.LeafNodeMin * 4 {
+			return NewConjunctionNode(tree, segments, dimName, 1.0, level + 1)
+		} else {
+			return &LeafNode{
+				Segments: mergedSegments,
+			}
 		}
 	}
 

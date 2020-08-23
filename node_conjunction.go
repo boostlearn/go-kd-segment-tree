@@ -36,7 +36,7 @@ func (node *ConjunctionNode) Search(p Point) []interface{} {
 	return result.ToSlice()
 }
 
-func NewLogicNode(tree *Tree,
+func NewConjunctionNode(tree *Tree,
 	segments []*Segment,
 	dimName interface{},
 	decreasePercent float64,
@@ -126,8 +126,12 @@ func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *Conjuncti
 	sort.Sort(&sortMeasures{measures:dimNode.splitPoints})
 
 	for _, seg := range segments {
-		for i, m := range dimNode.splitPoints {
+		for i, m := range dimNode.splitPoints[:len(dimNode.splitPoints)-1] {
 			nextM := dimNode.splitPoints[i+1]
+			if seg.Rect[dimName] == nil {
+				continue
+			}
+
 			if seg.Rect[dimName].(Interval)[0].SmallerOrEqual(m) &&
 				seg.Rect[dimName].(Interval)[1].BiggerOrEqual(nextM) {
 				key := fmt.Sprintf("%v_%v", m, nextM)
@@ -157,6 +161,10 @@ func NewDiscreteConjunctionNode(segments []*Segment, dimName interface{}) *Conju
 		segments:     make(map[Measure][]*Segment),
 	}
 	for _, seg := range segments {
+		if seg.Rect[dimName] == nil {
+			continue
+		}
+
 		for _, m := range seg.Rect[dimName].(Scatters) {
 			node.segments[m] = append(node.segments[m], seg)
 		}
