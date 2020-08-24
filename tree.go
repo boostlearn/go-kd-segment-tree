@@ -9,7 +9,7 @@ import (
 
 const DefaultTreeLevelMax = 16
 const DefaultLeafDataMin = 16
-const DefaultBranchDecreasePercentMin = 0.2
+const DefaultBranchDecreasePercentMin = 0.4
 
 type DimType struct{ Type int }
 
@@ -60,6 +60,9 @@ func (tree *Tree) Search(p Point) []interface{} {
 	tree.mu.RLock()
 	defer tree.mu.RUnlock()
 
+	if tree.root == nil {
+		return nil
+	}
 	return tree.root.Search(p)
 }
 
@@ -123,7 +126,7 @@ func (tree *Tree) Build() {
 		return
 	}
 
-	newNode := NewNode(tree.segments, tree, 0)
+	newNode := NewNode(tree.segments, tree, 1)
 
 	tree.mu.Lock()
 	tree.root = newNode

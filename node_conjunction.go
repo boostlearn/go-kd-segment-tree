@@ -21,6 +21,10 @@ type ConjunctionNode struct {
 func (node *ConjunctionNode) Search(p Point) []interface{} {
 	matchSegments := make(map[*Segment]int)
 	for dimName, d := range p {
+		if node.dimNode[dimName] == nil {
+			continue
+		}
+
 		for _, seg := range node.dimNode[dimName].Search(d) {
 			matchSegments[seg] = matchSegments[seg] + 1
 		}
@@ -123,6 +127,10 @@ func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *Conjuncti
 		dimNode.splitPoints = append(dimNode.splitPoints, t.(Measure))
 	}
 
+	if len(dimNode.splitPoints) == 0 {
+		return nil
+	}
+
 	sort.Sort(&sortMeasures{measures:dimNode.splitPoints})
 
 	for _, seg := range segments {
@@ -168,6 +176,10 @@ func NewDiscreteConjunctionNode(segments []*Segment, dimName interface{}) *Conju
 		for _, m := range seg.Rect[dimName].(Scatters) {
 			node.segments[m] = append(node.segments[m], seg)
 		}
+	}
+
+	if len(node.segments) == 0 {
+		return nil
 	}
 
 	return node

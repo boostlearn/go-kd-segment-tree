@@ -71,6 +71,7 @@ func (s *sortSegments) Swap(i, j int) {
 
 type sortMeasures struct {
 	measures []Measure
+	randNum []float64
 }
 
 func (s *sortMeasures) Len() int {
@@ -78,6 +79,18 @@ func (s *sortMeasures) Len() int {
 }
 
 func (s *sortMeasures) Less(i, j int) bool {
+	if len(s.randNum) == 0 {
+		s.randNum = make([]float64, len(s.measures))
+	}
+
+	if s.measures[i].Equal(s.measures[j]) {
+		for s.randNum[i] == s.randNum[j] {
+			s.randNum[i] = rand.Float64()
+			s.randNum[j] = rand.Float64()
+		}
+		return s.randNum[i] < s.randNum[j]
+	}
+
 	return s.measures[i].Smaller(s.measures[j])
 }
 

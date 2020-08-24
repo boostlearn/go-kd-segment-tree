@@ -13,9 +13,14 @@ func NewNode(segments []*Segment,
 		return nil
 	}
 
-	if len(segments) < tree.options.LeafNodeMin || level > tree.options.TreeLevelMax {
-		return &LeafNode{
-			Segments: MergeSegments(segments),
+	if len(segments) < tree.options.LeafNodeMin || level >= tree.options.TreeLevelMax {
+		mergedSegments := MergeSegments(segments)
+		if len(mergedSegments) > tree.options.LeafNodeMin * 4 {
+			return NewConjunctionNode(tree, segments, nil, 1.0, level + 1)
+		} else {
+			return &LeafNode{
+				Segments: mergedSegments,
+			}
 		}
 	}
 
@@ -23,7 +28,7 @@ func NewNode(segments []*Segment,
 	if decreasePercent < tree.options.BranchingDecreasePercentMin {
 		mergedSegments := MergeSegments(segments)
 		if len(mergedSegments) > tree.options.LeafNodeMin * 4 {
-			return NewConjunctionNode(tree, segments, dimName, 1.0, level + 1)
+			return NewConjunctionNode(tree, segments, nil , 1.0, level + 1)
 		} else {
 			return &LeafNode{
 				Segments: mergedSegments,
