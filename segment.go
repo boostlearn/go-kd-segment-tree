@@ -84,11 +84,7 @@ func (s *sortMeasures) Less(i, j int) bool {
 	}
 
 	if s.measures[i].Equal(s.measures[j]) {
-		for s.randNum[i] == s.randNum[j] {
-			s.randNum[i] = rand.Float64()
-			s.randNum[j] = rand.Float64()
-		}
-		return s.randNum[i] < s.randNum[j]
+		return i < j
 	}
 
 	return s.measures[i].Smaller(s.measures[j])

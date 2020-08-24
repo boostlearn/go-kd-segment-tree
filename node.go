@@ -1,5 +1,7 @@
 package go_kd_segment_tree
 
+import "fmt"
+
 type TreeNode interface {
 	Search(p Point) []interface{}
 	Dumps(prefix string) string
@@ -25,6 +27,7 @@ func NewNode(segments []*Segment,
 	}
 
 	dimName, decreasePercent := findBestBranchingDim(segments, tree.dimTypes)
+	fmt.Println("decrease:", dimName, " ", decreasePercent)
 	if decreasePercent < tree.options.BranchingDecreasePercentMin {
 		mergedSegments := MergeSegments(segments)
 		if len(mergedSegments) > tree.options.LeafNodeMin * 4 {
@@ -47,10 +50,11 @@ func NewNode(segments []*Segment,
 		}
 		return node
 	case DimTypeDiscrete.Type:
-		node, children := NewHashNode(tree, segments, dimName, decreasePercent, level)
+		node, defaultSeg, children := NewHashNode(tree, segments, dimName, decreasePercent, level)
 		for childKey, childSegments := range children {
-			node.child[childKey] = NewNode(childSegments, tree, level+1)
+			node.hashChild[childKey] = NewNode(childSegments, tree, level+1)
 		}
+		node.defaultChild = NewNode(defaultSeg, tree, level+1)
 		return node
 	}
 	return nil

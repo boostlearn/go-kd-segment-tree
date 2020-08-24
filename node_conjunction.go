@@ -160,6 +160,10 @@ type ConjunctionDimDiscreteNode struct {
 }
 
 func (node *ConjunctionDimDiscreteNode) Search(measure Measure) []*Segment {
+	if node == nil || node.segments == nil {
+		return nil
+	}
+
 	return node.segments[measure]
 }
 

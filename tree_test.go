@@ -11,8 +11,9 @@ var searchPoint []Point
 var dimType map[interface{}]DimType
 var rectNum int = 10000
 var realDimNum int = 0
+var realTargetNum int = 0
 var scatterDimNum int = 10
-var targetRate float64 = 0.4
+var scatterTargetNum int = 3
 
 func init() {
 	dimType = make(map[interface{}]DimType)
@@ -29,18 +30,35 @@ func init() {
 		point := make(Point)
 		for j := 0; j < realDimNum; j++ {
 			k := rand.Float64()
-			if rand.Float64() < targetRate {
-				rect[j] = Interval{MeasureFloat(k), MeasureFloat(k + 0.001)}
-			}
+			rect[j] = Interval{MeasureFloat(k), MeasureFloat(k + 0.001)}
 			point[j] = MeasureFloat(k)
 		}
 
+		for j := 0; j < realDimNum - realTargetNum  ; j++ {
+			for {
+				dim := rand.Intn(realDimNum)
+				if _, ok := rect[dim]; ok {
+					rect[dim] = nil
+					break
+				}
+			}
+		}
+
+
 		for j := 0; j < scatterDimNum; j++ {
 			k := rand.Intn(10000)
-			if rand.Float64() < targetRate {
-				rect[j+realDimNum] = Scatters{MeasureFloat(k)}
-			}
+			rect[j+realDimNum] = Scatters{MeasureFloat(k)}
 			point[j+realDimNum] = MeasureFloat(rand.Intn(10000))
+		}
+
+		for j := 0; j < scatterDimNum - scatterTargetNum; j++ {
+			for {
+				dim := rand.Intn(scatterDimNum)
+				if _, ok := rect[dim + realDimNum]; ok {
+					rect[dim + realDimNum] = nil
+					break
+				}
+			}
 		}
 
 		testRects = append(testRects, rect)
@@ -86,7 +104,7 @@ func TestNewTree(t *testing.T) {
 
 func BenchmarkTree_Search(b *testing.B) {
 	tree := NewTree(dimType, &TreeOptions{
-		TreeLevelMax:                1,
+		TreeLevelMax:                4,
 		LeafNodeMin:                 16,
 		BranchingDecreasePercentMin: 0.4,
 	})
