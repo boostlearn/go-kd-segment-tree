@@ -1,7 +1,5 @@
 package go_kd_segment_tree
 
-import "fmt"
-
 type TreeNode interface {
 	Search(p Point) []interface{}
 	Dumps(prefix string) string
@@ -27,7 +25,6 @@ func NewNode(segments []*Segment,
 	}
 
 	dimName, decreasePercent := findBestBranchingDim(segments, tree.dimTypes)
-	fmt.Println("decrease:", dimName, " ", decreasePercent)
 	if decreasePercent < tree.options.BranchingDecreasePercentMin {
 		mergedSegments := MergeSegments(segments)
 		if len(mergedSegments) > tree.options.LeafNodeMin * 4 {
@@ -41,7 +38,10 @@ func NewNode(segments []*Segment,
 
 	switch tree.dimTypes[dimName].Type {
 	case DimTypeReal.Type:
-		node, left, right := NewBinaryNode(tree, segments, dimName, decreasePercent, level)
+		node, pass, left, right := NewBinaryNode(tree, segments, dimName, decreasePercent, level)
+		if len(pass) > 0 {
+			node.Pass = NewNode(pass, tree, level+1)
+		}
 		if len(left) > 0 {
 			node.Left = NewNode(left, tree, level+1)
 		}
@@ -50,11 +50,13 @@ func NewNode(segments []*Segment,
 		}
 		return node
 	case DimTypeDiscrete.Type:
-		node, defaultSeg, children := NewHashNode(tree, segments, dimName, decreasePercent, level)
+		node, passSegments, children := NewHashNode(tree, segments, dimName, decreasePercent, level)
 		for childKey, childSegments := range children {
-			node.hashChild[childKey] = NewNode(childSegments, tree, level+1)
+			node.child[childKey] = NewNode(childSegments, tree, level+1)
 		}
-		node.defaultChild = NewNode(defaultSeg, tree, level+1)
+		if len(passSegments) > 0 {
+			node.pass = NewNode(passSegments, tree, level+1)
+		}
 		return node
 	}
 	return nil

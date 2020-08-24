@@ -10,10 +10,10 @@ var testRects []Rect
 var searchPoint []Point
 var dimType map[interface{}]DimType
 var rectNum int = 10000
-var realDimNum int = 0
-var realTargetNum int = 0
-var scatterDimNum int = 10
-var scatterTargetNum int = 3
+var realDimNum int = 10
+var realTargetNum int = 3
+var scatterDimNum int = 30
+var scatterTargetNum int = 5
 
 func init() {
 	dimType = make(map[interface{}]DimType)
@@ -104,7 +104,7 @@ func TestNewTree(t *testing.T) {
 
 func BenchmarkTree_Search(b *testing.B) {
 	tree := NewTree(dimType, &TreeOptions{
-		TreeLevelMax:                4,
+		TreeLevelMax:                16,
 		LeafNodeMin:                 16,
 		BranchingDecreasePercentMin: 0.4,
 	})

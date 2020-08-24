@@ -2,6 +2,7 @@ package go_kd_segment_tree
 
 import (
 	"fmt"
+	mapset "github.com/deckarep/golang-set"
 	"sort"
 )
 
@@ -18,6 +19,8 @@ type BinaryNode struct {
 
 	Left  TreeNode
 	Right TreeNode
+
+	Pass TreeNode
 }
 
 func (node *BinaryNode) Search(p Point) []interface{} {
@@ -31,16 +34,30 @@ func (node *BinaryNode) Search(p Point) []interface{} {
 
 	x := p[node.DimName]
 
+	var passResult []interface{}
+	if node.Pass != nil {
+		passResult = node.Pass.Search(p)
+	}
+
+	var childResult []interface{}
 	if x.Smaller(node.Mid) {
 		if node.Left == nil {
 			return nil
 		}
-		return node.Left.Search(p)
+		childResult =  node.Left.Search(p)
 	} else {
 		if node.Right == nil {
 			return nil
 		}
-		return node.Right.Search(p)
+		childResult = node.Right.Search(p)
+	}
+
+	if len(passResult) == 0 {
+		return childResult
+	} else if len(childResult) == 0 {
+		return passResult
+	} else {
+		return  mapset.NewSet(passResult...).Union(mapset.NewSet(childResult...)).ToSlice()
 	}
 }
 
@@ -59,12 +76,12 @@ func NewBinaryNode(tree *Tree,
 	dimName interface{},
 	decreasePercent float64,
 	level int,
-) (*BinaryNode, []*Segment, []*Segment) {
+) (*BinaryNode, []*Segment, []*Segment, []*Segment) {
 	sort.Stable(&sortSegments{dimName: dimName, segments: segments})
 
 	_, midMeasure := getRealDimSegmentsDecrease(segments, dimName)
 	if midMeasure == nil {
-		return nil, nil, nil
+		return nil, nil, nil, nil
 	}
 
 	node := &BinaryNode{
@@ -77,10 +94,10 @@ func NewBinaryNode(tree *Tree,
 
 	var left []*Segment
 	var right []*Segment
+	var pass []*Segment
 	for _, seg := range segments {
 		if seg.Rect[dimName] == nil {
-			left = append(left, seg)
-			right = append(right, seg)
+			pass = append(pass, seg)
 			continue
 		}
 
@@ -89,17 +106,13 @@ func NewBinaryNode(tree *Tree,
 		if mRange[1].Smaller(midMeasure) {
 			left = append(left, seg)
 			continue
-		}
-
-		if mRange[0].Bigger(midMeasure) {
+		} else if mRange[0].Bigger(midMeasure) {
 			right = append(right, seg)
 			continue
+		} else {
+			pass = append(pass, seg)
 		}
-
-		left = append(left, seg)
-		right = append(right, seg)
-
 	}
 
-	return node, left, right
+	return node, pass, left, right
 }
