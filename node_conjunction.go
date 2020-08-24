@@ -15,25 +15,27 @@ type ConjunctionNode struct {
 	Level           int
 	DecreasePercent float64
 
+	segments []*Segment
+
 	dimNode map[interface{}]ConjunctionDimNode
 }
 
 func (node *ConjunctionNode) Search(p Point) []interface{} {
-	matchSegments := make(map[*Segment]int)
+	matchSegments := make(map[int]int)
 	for dimName, d := range p {
 		if node.dimNode[dimName] == nil {
 			continue
 		}
 
-		for _, seg := range node.dimNode[dimName].Search(d) {
-			matchSegments[seg] = matchSegments[seg] + 1
+		for _, segIndex := range node.dimNode[dimName].Search(d) {
+			matchSegments[segIndex] = matchSegments[segIndex] + 1
 		}
 	}
 
 	var result = mapset.NewSet()
-	for seg, matchNum := range matchSegments {
-		if len(seg.Rect) == matchNum {
-			result = result.Union(seg.Data)
+	for segIndex, matchNum := range matchSegments {
+		if len(node.segments[segIndex].Rect) == matchNum {
+			result = result.Union(node.segments[segIndex].Data)
 		}
 	}
 
@@ -41,7 +43,7 @@ func (node *ConjunctionNode) Search(p Point) []interface{} {
 }
 
 func (node *ConjunctionNode) SearchRect(r Rect) []interface{} {
-	matchSegments := make(map[*Segment]int)
+	matchSegments := make(map[int]int)
 	for dimName, d := range r {
 		if node.dimNode[dimName] == nil {
 			continue
@@ -53,9 +55,9 @@ func (node *ConjunctionNode) SearchRect(r Rect) []interface{} {
 	}
 
 	var result = mapset.NewSet()
-	for seg, matchNum := range matchSegments {
-		if len(seg.Rect) == matchNum {
-			result = result.Union(seg.Data)
+	for segIndex, matchNum := range matchSegments {
+		if len(node.segments[segIndex].Rect) == matchNum {
+			result = result.Union(node.segments[segIndex].Data)
 		}
 	}
 
@@ -72,6 +74,7 @@ func NewConjunctionNode(tree *Tree,
 		Tree:            tree,
 		DimName:         dimName,
 		Level:           level,
+		segments:segments,
 		DecreasePercent: decreasePercent,
 		dimNode:         make(map[interface{}]ConjunctionDimNode),
 	}
@@ -93,8 +96,8 @@ func (node *ConjunctionNode) Dumps(prefix string) string {
 }
 
 type ConjunctionDimNode interface {
-	Search(measure Measure) []*Segment
-	SearchRect(rect interface{}) []*Segment
+	Search(measure Measure) []int
+	SearchRect(rect interface{}) []int
 }
 
 type ConjunctionDimRealNode struct {
@@ -103,10 +106,10 @@ type ConjunctionDimRealNode struct {
 
 	splitPoints []Measure
 
-	segments map[string][]*Segment
+	segments map[string][]int
 }
 
-func (dimNode *ConjunctionDimRealNode) Search(measure Measure) []*Segment {
+func (dimNode *ConjunctionDimRealNode) Search(measure Measure) []int {
 	if dimNode == nil || len(dimNode.splitPoints) == 0 {
 		return nil
 	}
@@ -129,7 +132,7 @@ func (dimNode *ConjunctionDimRealNode) Search(measure Measure) []*Segment {
 	return nil
 }
 
-func (dimNode *ConjunctionDimRealNode) SearchRect(measure interface{}) []*Segment {
+func (dimNode *ConjunctionDimRealNode) SearchRect(measure interface{}) []int {
 	if dimNode == nil || len(dimNode.splitPoints) == 0 {
 		return nil
 	}
@@ -151,9 +154,9 @@ func (dimNode *ConjunctionDimRealNode) SearchRect(measure interface{}) []*Segmen
 		}
 	}
 
-	var result []*Segment
+	var result []int
 	for _, seg := range matchSegments.ToSlice() {
-		result = append(result, seg.(*Segment))
+		result = append(result, seg.(int))
 	}
 	return result
 }
@@ -172,7 +175,7 @@ func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *Conjuncti
 	var dimNode = &ConjunctionDimRealNode{
 		dimName:     dimName,
 		splitPoints: nil,
-		segments:    make(map[string][]*Segment),
+		segments:    make(map[string][]int),
 	}
 
 	for _, t := range allSplit.ToSlice() {
@@ -185,7 +188,7 @@ func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *Conjuncti
 
 	sort.Sort(&sortMeasures{measures: dimNode.splitPoints})
 
-	for _, seg := range segments {
+	for index, seg := range segments {
 		for i, m := range dimNode.splitPoints[:len(dimNode.splitPoints)-1] {
 			nextM := dimNode.splitPoints[i+1]
 			if seg.Rect[dimName] == nil {
@@ -195,7 +198,7 @@ func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *Conjuncti
 			if seg.Rect[dimName].(Interval)[0].SmallerOrEqual(m) &&
 				seg.Rect[dimName].(Interval)[1].BiggerOrEqual(nextM) {
 				key := fmt.Sprintf("%v_%v", m, nextM)
-				dimNode.segments[key] = append(dimNode.segments[key], seg)
+				dimNode.segments[key] = append(dimNode.segments[key], index)
 			}
 		}
 	}
@@ -208,10 +211,10 @@ type ConjunctionDimDiscreteNode struct {
 
 	dimName interface{}
 
-	segments map[Measure][]*Segment
+	segments map[Measure][]int
 }
 
-func (node *ConjunctionDimDiscreteNode) Search(measure Measure) []*Segment {
+func (node *ConjunctionDimDiscreteNode) Search(measure Measure) []int {
 	if node == nil || node.segments == nil {
 		return nil
 	}
@@ -219,7 +222,7 @@ func (node *ConjunctionDimDiscreteNode) Search(measure Measure) []*Segment {
 	return node.segments[measure]
 }
 
-func (node *ConjunctionDimDiscreteNode) SearchRect(scatters interface{}) []*Segment {
+func (node *ConjunctionDimDiscreteNode) SearchRect(scatters interface{}) []int {
 	if node == nil || node.segments == nil {
 		return nil
 	}
@@ -234,9 +237,9 @@ func (node *ConjunctionDimDiscreteNode) SearchRect(scatters interface{}) []*Segm
 		}
 	}
 
-	result := []*Segment{}
+	var result []int
 	for _, seg := range matchSegments.ToSlice() {
-		result = append(result, seg.(*Segment))
+		result = append(result, seg.(int))
 	}
 	return result
 }
@@ -244,15 +247,15 @@ func (node *ConjunctionDimDiscreteNode) SearchRect(scatters interface{}) []*Segm
 func NewDiscreteConjunctionNode(segments []*Segment, dimName interface{}) *ConjunctionDimDiscreteNode {
 	node := &ConjunctionDimDiscreteNode{
 		dimName:  dimName,
-		segments: make(map[Measure][]*Segment),
+		segments: make(map[Measure][]int),
 	}
 	for _, seg := range segments {
 		if seg.Rect[dimName] == nil {
 			continue
 		}
 
-		for _, m := range seg.Rect[dimName].(Scatters) {
-			node.segments[m] = append(node.segments[m], seg)
+		for index, m := range seg.Rect[dimName].(Scatters) {
+			node.segments[m] = append(node.segments[m], index)
 		}
 	}
 
