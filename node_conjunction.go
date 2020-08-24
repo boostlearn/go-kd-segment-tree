@@ -17,28 +17,23 @@ type ConjunctionNode struct {
 
 	segments []*Segment
 
-	counter []int
-
 	dimNode map[interface{}]ConjunctionDimNode
 }
 
 func (node *ConjunctionNode) Search(p Point) []interface{} {
-	for i := 0; i < len(node.counter); i++ {
-		node.counter[i] = 0
-	}
-
+	segCounter := make([]int, len(node.segments))
 	for dimName, d := range p {
 		if node.dimNode[dimName] == nil {
 			continue
 		}
 
 		for _, segIndex := range node.dimNode[dimName].Search(d) {
-			node.counter[segIndex] += 1
+			segCounter[segIndex] += 1
 		}
 	}
 
 	var result = mapset.NewSet()
-	for segIndex, matchNum := range node.counter {
+	for segIndex, matchNum := range segCounter {
 		if len(node.segments[segIndex].Rect) == matchNum {
 			result = result.Union(node.segments[segIndex].Data)
 		}
@@ -48,21 +43,19 @@ func (node *ConjunctionNode) Search(p Point) []interface{} {
 }
 
 func (node *ConjunctionNode) SearchRect(r Rect) []interface{} {
-	for i := 0; i < len(node.counter); i++ {
-		node.counter[i] = 0
-	}
+	segCounter := make([]int, len(node.segments))
 	for dimName, d := range r {
 		if node.dimNode[dimName] == nil {
 			continue
 		}
 
 		for _, seg := range node.dimNode[dimName].SearchRect(d) {
-			node.counter[seg] += 1
+			segCounter[seg] += 1
 		}
 	}
 
 	var result = mapset.NewSet()
-	for segIndex, matchNum := range node.counter {
+	for segIndex, matchNum := range segCounter {
 		if len(node.segments[segIndex].Rect) == matchNum {
 			result = result.Union(node.segments[segIndex].Data)
 		}
@@ -82,7 +75,6 @@ func NewConjunctionNode(tree *Tree,
 		DimName:         dimName,
 		Level:           level,
 		segments:segments,
-		counter:make([]int, len(segments)),
 		DecreasePercent: decreasePercent,
 		dimNode:         make(map[interface{}]ConjunctionDimNode),
 	}
