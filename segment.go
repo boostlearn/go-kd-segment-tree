@@ -55,6 +55,12 @@ func (s *sortSegments) Less(i, j int) bool {
 		}
 	}
 
+	if s.segments[i].rnd == 0 {
+		s.segments[i].rnd = rand.Float64()
+	}
+	if s.segments[j].rnd == 0 {
+		s.segments[j].rnd = rand.Float64()
+	}
 	for s.segments[i].rnd == s.segments[j].rnd {
 		s.segments[i].rnd = rand.Float64()
 		s.segments[j].rnd = rand.Float64()
@@ -84,7 +90,18 @@ func (s *sortMeasures) Less(i, j int) bool {
 	}
 
 	if s.measures[i].Equal(s.measures[j]) {
-		return i < j
+		if s.randNum[i] == 0 {
+			s.randNum[i] = rand.Float64()
+		}
+		if s.randNum[j] == 0 {
+			s.randNum[j] = rand.Float64()
+		}
+
+		for s.randNum[i] == s.randNum[j] {
+			s.randNum[i] = rand.Float64()
+			s.randNum[j] = rand.Float64()
+		}
+		return s.randNum[i] < s.randNum[j]
 	}
 
 	return s.measures[i].Smaller(s.measures[j])

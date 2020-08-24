@@ -9,7 +9,7 @@ import (
 var testRects []Rect
 var searchPoint []Point
 var dimType map[interface{}]DimType
-var rectNum int = 10000
+var rectNum int = 1000
 var realDimNum int = 10
 var realTargetNum int = 3
 var scatterDimNum int = 30
