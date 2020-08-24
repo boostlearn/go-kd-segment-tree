@@ -15,7 +15,7 @@ type HashNode struct {
 	DecreasePercent float64
 
 	child map[Measure]TreeNode
-	pass TreeNode
+	pass  TreeNode
 }
 
 func (node *HashNode) Search(p Point) []interface{} {
@@ -31,12 +31,48 @@ func (node *HashNode) Search(p Point) []interface{} {
 
 	var defaultResult []interface{}
 	if node.pass != nil {
-		 defaultResult = node.pass.Search(p)
+		defaultResult = node.pass.Search(p)
 	}
 
 	var childResult []interface{}
 	if child, ok := node.child[x]; ok {
-		childResult =  child.Search(p)
+		childResult = child.Search(p)
+	}
+
+	if len(defaultResult) == 0 {
+		return childResult
+	} else if len(childResult) == 0 {
+		return defaultResult
+	} else {
+		return mapset.NewSet(defaultResult...).Union(mapset.NewSet(childResult...)).ToSlice()
+	}
+}
+
+func (node *HashNode) SearchRect(r Rect) []interface{} {
+	if node == nil {
+		return nil
+	}
+
+	if _, ok := r[node.DimName]; ok == false {
+		return nil
+	}
+
+	if _, ok := r[node.DimName].(Scatters); ok == false {
+		return nil
+	}
+
+	scatters := r[node.DimName].(Scatters)
+
+	var defaultResult []interface{}
+	if node.pass != nil {
+		defaultResult = node.pass.SearchRect(r)
+	}
+
+	var childResult []interface{}
+	for _, x := range scatters {
+		if child, ok := node.child[x]; ok {
+			childResult = append(childResult, child.SearchRect(r))
+		}
 	}
 
 	if len(defaultResult) == 0 {

@@ -44,7 +44,7 @@ func (node *BinaryNode) Search(p Point) []interface{} {
 		if node.Left == nil {
 			return nil
 		}
-		childResult =  node.Left.Search(p)
+		childResult = node.Left.Search(p)
 	} else {
 		if node.Right == nil {
 			return nil
@@ -57,7 +57,52 @@ func (node *BinaryNode) Search(p Point) []interface{} {
 	} else if len(childResult) == 0 {
 		return passResult
 	} else {
-		return  mapset.NewSet(passResult...).Union(mapset.NewSet(childResult...)).ToSlice()
+		return mapset.NewSet(passResult...).Union(mapset.NewSet(childResult...)).ToSlice()
+	}
+}
+
+func (node *BinaryNode) SearchRect(r Rect) []interface{} {
+	if node == nil {
+		return nil
+	}
+
+	if _, ok := r[node.DimName]; ok == false {
+		return nil
+	}
+
+	if _, ok := r[node.DimName].(Interval); ok == false {
+		return nil
+	}
+
+	dimInterval := r[node.DimName].(Interval)
+
+	var passResult []interface{}
+	if node.Pass != nil {
+		passResult = node.Pass.SearchRect(r)
+	}
+
+	var childResult []interface{}
+	if dimInterval[1].Smaller(node.Mid) {
+		if node.Left == nil {
+			return nil
+		}
+		childResult = node.Left.SearchRect(r)
+	} else if dimInterval[0].Bigger(node.Mid) {
+		if node.Right == nil {
+			return nil
+		}
+		childResult = node.Right.SearchRect(r)
+	} else {
+		childResult = append(childResult, node.Left.SearchRect(r)...)
+		childResult = append(childResult, node.Right.SearchRect(r)...)
+	}
+
+	if len(passResult) == 0 {
+		return childResult
+	} else if len(childResult) == 0 {
+		return passResult
+	} else {
+		return mapset.NewSet(passResult...).Union(mapset.NewSet(childResult...)).ToSlice()
 	}
 }
 

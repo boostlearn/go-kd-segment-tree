@@ -34,7 +34,7 @@ func init() {
 			point[j] = MeasureFloat(k)
 		}
 
-		for j := 0; j < realDimNum - realTargetNum  ; j++ {
+		for j := 0; j < realDimNum-realTargetNum; j++ {
 			for {
 				dim := rand.Intn(realDimNum)
 				if _, ok := rect[dim]; ok {
@@ -44,18 +44,17 @@ func init() {
 			}
 		}
 
-
 		for j := 0; j < scatterDimNum; j++ {
 			k := rand.Intn(10000)
 			rect[j+realDimNum] = Scatters{MeasureFloat(k)}
 			point[j+realDimNum] = MeasureFloat(rand.Intn(10000))
 		}
 
-		for j := 0; j < scatterDimNum - scatterTargetNum; j++ {
+		for j := 0; j < scatterDimNum-scatterTargetNum; j++ {
 			for {
 				dim := rand.Intn(scatterDimNum)
-				if _, ok := rect[dim + realDimNum]; ok {
-					rect[dim + realDimNum] = nil
+				if _, ok := rect[dim+realDimNum]; ok {
+					rect[dim+realDimNum] = nil
 					break
 				}
 			}

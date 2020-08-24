@@ -77,7 +77,7 @@ func (s *sortSegments) Swap(i, j int) {
 
 type sortMeasures struct {
 	measures []Measure
-	randNum []float64
+	randNum  []float64
 }
 
 func (s *sortMeasures) Len() int {
@@ -131,10 +131,10 @@ func getRealDimSegmentsDecrease(segments []*Segment, dimName interface{}) (int, 
 		starts = append(starts, seg.Rect[dimName].(Interval)[0])
 		ends = append(ends, seg.Rect[dimName].(Interval)[1])
 	}
-	sort.Sort(&sortMeasures{measures:starts})
-	sort.Sort(&sortMeasures{measures:ends})
+	sort.Sort(&sortMeasures{measures: starts})
+	sort.Sort(&sortMeasures{measures: ends})
 	pos := 0
-	for pos < len(starts) - 1 && ends[pos].Smaller(starts[len(ends) - 1 - pos]) {
+	for pos < len(starts)-1 && ends[pos].Smaller(starts[len(ends)-1-pos]) {
 		pos += 1
 	}
 	midMeasure := ends[pos]

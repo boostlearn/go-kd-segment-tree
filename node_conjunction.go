@@ -40,6 +40,28 @@ func (node *ConjunctionNode) Search(p Point) []interface{} {
 	return result.ToSlice()
 }
 
+func (node *ConjunctionNode) SearchRect(r Rect) []interface{} {
+	matchSegments := make(map[*Segment]int)
+	for dimName, d := range r {
+		if node.dimNode[dimName] == nil {
+			continue
+		}
+
+		for _, seg := range node.dimNode[dimName].SearchRect(d) {
+			matchSegments[seg] = matchSegments[seg] + 1
+		}
+	}
+
+	var result = mapset.NewSet()
+	for seg, matchNum := range matchSegments {
+		if len(seg.Rect) == matchNum {
+			result = result.Union(seg.Data)
+		}
+	}
+
+	return result.ToSlice()
+}
+
 func NewConjunctionNode(tree *Tree,
 	segments []*Segment,
 	dimName interface{},
@@ -47,7 +69,7 @@ func NewConjunctionNode(tree *Tree,
 	level int,
 ) *ConjunctionNode {
 	var node = &ConjunctionNode{
-		Tree:           tree,
+		Tree:            tree,
 		DimName:         dimName,
 		Level:           level,
 		DecreasePercent: decreasePercent,
@@ -72,6 +94,7 @@ func (node *ConjunctionNode) Dumps(prefix string) string {
 
 type ConjunctionDimNode interface {
 	Search(measure Measure) []*Segment
+	SearchRect(rect interface{}) []*Segment
 }
 
 type ConjunctionDimRealNode struct {
@@ -91,7 +114,7 @@ func (dimNode *ConjunctionDimRealNode) Search(measure Measure) []*Segment {
 	start := 0
 	end := len(dimNode.splitPoints) - 1
 	for start < end {
-		mid := (start + end)/2
+		mid := (start + end) / 2
 		if dimNode.splitPoints[mid].SmallerOrEqual(measure) &&
 			dimNode.splitPoints[mid+1].BiggerOrEqual(measure) {
 			return dimNode.segments[fmt.Sprintf("%v_%v",
@@ -106,6 +129,35 @@ func (dimNode *ConjunctionDimRealNode) Search(measure Measure) []*Segment {
 	return nil
 }
 
+func (dimNode *ConjunctionDimRealNode) SearchRect(measure interface{}) []*Segment {
+	if dimNode == nil || len(dimNode.splitPoints) == 0 {
+		return nil
+	}
+
+	if _, ok := measure.(Interval); ok == false {
+		return nil
+	}
+
+	interval := measure.(Interval)
+
+	matchSegments := mapset.NewSet()
+	for i, _ := range dimNode.splitPoints[:len(dimNode.splitPoints)-1] {
+		if interval.Contains(dimNode.splitPoints[i]) &&
+			interval.Contains(dimNode.splitPoints[i+1]) {
+			for _, seg := range dimNode.segments[fmt.Sprintf("%v_%v",
+				dimNode.splitPoints[i], dimNode.splitPoints[i+1])] {
+				matchSegments.Add(seg)
+			}
+		}
+	}
+
+	var result []*Segment
+	for _, seg := range matchSegments.ToSlice() {
+		result = append(result, seg.(*Segment))
+	}
+	return result
+}
+
 func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *ConjunctionDimRealNode {
 	var allSplit = mapset.NewSet()
 	for _, seg := range segments {
@@ -118,9 +170,9 @@ func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *Conjuncti
 	}
 
 	var dimNode = &ConjunctionDimRealNode{
-		dimName:      dimName,
-		splitPoints:       nil,
-		segments:     make(map[string][]*Segment),
+		dimName:     dimName,
+		splitPoints: nil,
+		segments:    make(map[string][]*Segment),
 	}
 
 	for _, t := range allSplit.ToSlice() {
@@ -131,7 +183,7 @@ func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *Conjuncti
 		return nil
 	}
 
-	sort.Sort(&sortMeasures{measures:dimNode.splitPoints})
+	sort.Sort(&sortMeasures{measures: dimNode.splitPoints})
 
 	for _, seg := range segments {
 		for i, m := range dimNode.splitPoints[:len(dimNode.splitPoints)-1] {
@@ -167,10 +219,32 @@ func (node *ConjunctionDimDiscreteNode) Search(measure Measure) []*Segment {
 	return node.segments[measure]
 }
 
+func (node *ConjunctionDimDiscreteNode) SearchRect(scatters interface{}) []*Segment {
+	if node == nil || node.segments == nil {
+		return nil
+	}
+	if _, ok := scatters.(Scatters); ok == false {
+		return nil
+	}
+
+	matchSegments := mapset.NewSet()
+	for _, d := range scatters.(Scatters) {
+		for _, seg := range node.segments[d] {
+			matchSegments.Add(seg)
+		}
+	}
+
+	result := []*Segment{}
+	for _, seg := range matchSegments.ToSlice() {
+		result = append(result, seg.(*Segment))
+	}
+	return result
+}
+
 func NewDiscreteConjunctionNode(segments []*Segment, dimName interface{}) *ConjunctionDimDiscreteNode {
 	node := &ConjunctionDimDiscreteNode{
-		dimName:   dimName,
-		segments:     make(map[Measure][]*Segment),
+		dimName:  dimName,
+		segments: make(map[Measure][]*Segment),
 	}
 	for _, seg := range segments {
 		if seg.Rect[dimName] == nil {

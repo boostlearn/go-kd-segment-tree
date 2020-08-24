@@ -66,6 +66,16 @@ func (tree *Tree) Search(p Point) []interface{} {
 	return tree.root.Search(p)
 }
 
+func (tree *Tree) SearchRect(r Rect) []interface{} {
+	tree.mu.RLock()
+	defer tree.mu.RUnlock()
+
+	if tree.root == nil {
+		return nil
+	}
+	return tree.root.SearchRect(r)
+}
+
 func (tree *Tree) Dumps() string {
 	tree.mu.RLock()
 	defer tree.mu.RUnlock()
