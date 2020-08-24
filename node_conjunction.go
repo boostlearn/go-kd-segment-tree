@@ -27,8 +27,8 @@ func (node *ConjunctionNode) Search(p Point) []interface{} {
 			continue
 		}
 
-		for _, segIndex := range node.dimNode[dimName].Search(d) {
-			segCounter[segIndex] += 1
+		for _, _ = range node.dimNode[dimName].Search(d) {
+			//segCounter[segIndex] += 1
 		}
 	}
 
