@@ -15,7 +15,7 @@ func NewNode(segments []*Segment,
 	}
 
 	conjunctionNode := NewConjunctionNode(tree, segments, nil, 1.0, level+1)
-	conjunctionNodeDecreasePercent := float64(len(segments) - conjunctionNode.MaxInvertNodeNum() * len(tree.dimTypes)) /float64(len(segments))
+	conjunctionNodeDecreasePercent := float64(len(segments) - conjunctionNode.MaxInvertNodeNum()) /float64(len(segments))
 	if conjunctionNodeDecreasePercent < 0 {
 		conjunctionNodeDecreasePercent = 0
 	}

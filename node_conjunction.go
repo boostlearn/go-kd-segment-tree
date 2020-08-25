@@ -132,13 +132,15 @@ func (dimNode *ConjunctionDimRealNode) Search(measure Measure) []int {
 	for start < end {
 		mid := (start + end) / 2
 		if dimNode.splitPoints[mid].SmallerOrEqual(measure) &&
-			dimNode.splitPoints[mid+1].BiggerOrEqual(measure) {
+			dimNode.splitPoints[mid+1].Bigger(measure) {
 			return dimNode.segments[fmt.Sprintf("%v_%v",
 				dimNode.splitPoints[mid], dimNode.splitPoints[mid+1])]
-		} else if dimNode.splitPoints[mid].Bigger(measure) {
-			end = mid - 1
-		} else {
+		} else if dimNode.splitPoints[mid+1].SmallerOrEqual(measure) {
 			start = mid + 1
+		} else if dimNode.splitPoints[mid].Bigger(measure){
+			end = mid
+		} else {
+			break
 		}
 	}
 
@@ -189,24 +191,39 @@ func (dimNode *ConjunctionDimRealNode) SearchRect(measure interface{}) []int {
 }
 
 func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *ConjunctionDimRealNode {
-	var allSplit = mapset.NewSet()
+	var allSplit = []Measure{}
 	for _, seg := range segments {
 		if seg.Rect[dimName] == nil {
 			continue
 		}
 
-		allSplit.Add(seg.Rect[dimName].(Interval)[0])
-		allSplit.Add(seg.Rect[dimName].(Interval)[1])
+		foundStart := false
+		for _, m := range allSplit {
+			if m.Equal(seg.Rect[dimName].(Interval)[0]) {
+				foundStart = true
+				break
+			}
+		}
+		if foundStart == false {
+			allSplit = append(allSplit, seg.Rect[dimName].(Interval)[0])
+		}
+
+		foundEnd := false
+		for _, m := range allSplit {
+			if m.Equal(seg.Rect[dimName].(Interval)[1]) {
+				foundEnd = true
+				break
+			}
+		}
+		if foundEnd == false {
+			allSplit = append(allSplit, seg.Rect[dimName].(Interval)[1])
+		}
 	}
 
 	var dimNode = &ConjunctionDimRealNode{
 		dimName:     dimName,
-		splitPoints: nil,
+		splitPoints: allSplit,
 		segments:    make(map[string][]int),
-	}
-
-	for _, t := range allSplit.ToSlice() {
-		dimNode.splitPoints = append(dimNode.splitPoints, t.(Measure))
 	}
 
 	if len(dimNode.splitPoints) == 0 {

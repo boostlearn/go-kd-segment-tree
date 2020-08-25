@@ -10,7 +10,7 @@ import (
 var testRects []Rect
 var searchPoint []Point
 var dimType map[interface{}]DimType
-var rectNum int = 10000
+var rectNum int = 100
 var realDimNum int = 10
 var realTargetNum int = 1
 var scatterDimNum int = 0
@@ -69,13 +69,13 @@ func init() {
 
 
 func TestNewTree(t *testing.T) {
-	testSize := 1000
+	testSize := 100
 
 	noTreeTotal := 0
-	for _, p := range searchPoint {
-		for _, rect := range testRects[:testSize] {
+	for i, p := range searchPoint {
+		for j, rect := range testRects[:testSize] {
 			if rect.Contains(p) {
-				//fmt.Printf("notree: %v %v %v %v\n", i, j, rect, p)
+				fmt.Printf("notree: %v %v %v %v\n", i, j, rect, p)
 				noTreeTotal += 1
 			}
 		}
@@ -95,10 +95,10 @@ func TestNewTree(t *testing.T) {
 	fmt.Println("tree:", tree.Dumps())
 
 	treeTotal := 0
-	for _, p := range searchPoint {
+	for i, p := range searchPoint {
 		d := tree.Search(p)
 		if len(d) > 0 {
-			//fmt.Printf("tree: %v %v, %v\n", i, p, d)
+			fmt.Printf("tree: %v %v, %v\n", i, p, d)
 		}
 		treeTotal += len(d)
 	}
