@@ -9,12 +9,12 @@ import (
 var testRects []Rect
 var searchPoint []Point
 var dimType map[interface{}]DimType
-var rectNum int = 100000
+var rectNum int = 100
 var realDimNum int = 0
 var realTargetNum int = 0
 var scatterDimNum int = 30
 var scatterTargetNum int = 30
-var scatterDimSize = 100000
+var scatterDimSize = 10
 
 func init() {
 	dimType = make(map[interface{}]DimType)
