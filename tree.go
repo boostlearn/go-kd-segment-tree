@@ -9,7 +9,7 @@ import (
 
 const DefaultTreeLevelMax = 16
 const DefaultLeafDataMin = 16
-const DefaultBranchDecreasePercentMin = 0.4
+const DefaultBranchDecreasePercentMin = 0.1
 
 type DimType struct{ Type int }
 
@@ -88,6 +88,11 @@ func (tree *Tree) Add(rect Rect, data interface{}) error {
 	defer tree.updateMu.Unlock()
 
 	for name, d := range rect {
+		if d == nil {
+			delete(rect, name)
+			continue
+		}
+
 		switch d.(type) {
 		case Interval:
 			if tree.dimTypes[name] != DimTypeReal {

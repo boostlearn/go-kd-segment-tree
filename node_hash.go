@@ -90,8 +90,10 @@ func (node *HashNode) Dumps(prefix string) string {
 	}
 
 	var msgs []string
-	msgs = append(msgs, fmt.Sprintf("%s -hnode{dim:%d, decreasePercent:%v}", prefix, node.DimName, node.DecreasePercent))
-	msgs = append(msgs, node.pass.Dumps(fmt.Sprintf("%v    %v:", prefix, "<PASS>")))
+	msgs = append(msgs, fmt.Sprintf("%s -hnode{dim:%d, decreasePercent:%v}\n", prefix, node.DimName, node.DecreasePercent))
+	if node.pass != nil  {
+		msgs = append(msgs, node.pass.Dumps(fmt.Sprintf("%v    %v:", prefix, "<PASS>")))
+	}
 	for childKey, child := range node.child {
 		msgs = append(msgs, child.Dumps(fmt.Sprintf("%v    %v:", prefix, childKey)))
 	}
