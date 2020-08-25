@@ -10,12 +10,12 @@ import (
 var testRects []Rect
 var searchPoint []Point
 var dimType map[interface{}]DimType
-var rectNum int = 1000
-var realDimNum int = 10
-var realTargetNum int = 1
+var rectNum int = 10000
+var realDimNum int = 0
+var realTargetNum int = 0
 var scatterDimNum int = 30
 var scatterTargetNum int = 3
-var scatterDimSize = 10000
+var scatterDimSize = 100000
 
 func init() {
 	dimType = make(map[interface{}]DimType)
@@ -122,7 +122,7 @@ func BenchmarkTree_Search(b *testing.B) {
 	}
 	tree.Build()
 
-	//fmt.Println("tree:", tree.Dumps())
+	fmt.Println("tree:", tree.Dumps())
 
 	b.ReportAllocs()
 	b.ResetTimer()
