@@ -127,14 +127,27 @@ func (dimNode *ConjunctionDimRealNode) Search(measure Measure) []int {
 		return nil
 	}
 
+	pos := dimNode.searchPos(measure)
+	if pos < 0 || pos >= len(dimNode.splitPoints) {
+		return nil
+	}
+
+	return dimNode.segments[fmt.Sprintf("%v_%v",
+		dimNode.splitPoints[pos], dimNode.splitPoints[pos+1])]
+}
+
+func (dimNode *ConjunctionDimRealNode) searchPos(measure Measure) int {
+	if dimNode == nil || len(dimNode.splitPoints) == 0 {
+		return -1
+	}
+
 	start := 0
 	end := len(dimNode.splitPoints) - 1
 	for start < end {
 		mid := (start + end) / 2
 		if dimNode.splitPoints[mid].SmallerOrEqual(measure) &&
 			dimNode.splitPoints[mid+1].Bigger(measure) {
-			return dimNode.segments[fmt.Sprintf("%v_%v",
-				dimNode.splitPoints[mid], dimNode.splitPoints[mid+1])]
+			return mid
 		} else if dimNode.splitPoints[mid+1].SmallerOrEqual(measure) {
 			start = mid + 1
 		} else if dimNode.splitPoints[mid].Bigger(measure){
@@ -144,7 +157,7 @@ func (dimNode *ConjunctionDimRealNode) Search(measure Measure) []int {
 		}
 	}
 
-	return nil
+	return -1
 }
 
 func (dimNode *ConjunctionDimRealNode) MaxInvertNode() int {
@@ -197,27 +210,8 @@ func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *Conjuncti
 			continue
 		}
 
-		foundStart := false
-		for _, m := range allSplit {
-			if m.Equal(seg.Rect[dimName].(Interval)[0]) {
-				foundStart = true
-				break
-			}
-		}
-		if foundStart == false {
-			allSplit = append(allSplit, seg.Rect[dimName].(Interval)[0])
-		}
-
-		foundEnd := false
-		for _, m := range allSplit {
-			if m.Equal(seg.Rect[dimName].(Interval)[1]) {
-				foundEnd = true
-				break
-			}
-		}
-		if foundEnd == false {
-			allSplit = append(allSplit, seg.Rect[dimName].(Interval)[1])
-		}
+		allSplit = append(allSplit, seg.Rect[dimName].(Interval)[0])
+		allSplit = append(allSplit, seg.Rect[dimName].(Interval)[1])
 	}
 
 	var dimNode = &ConjunctionDimRealNode{
@@ -231,12 +225,35 @@ func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *Conjuncti
 	}
 
 	sort.Sort(&sortMeasures{measures: dimNode.splitPoints})
+	toIndex := 0
+	for _, m := range dimNode.splitPoints {
+		if dimNode.splitPoints[toIndex].Equal(m) {
+			continue
+		} else {
+			dimNode.splitPoints[toIndex+1] = m
+			toIndex += 1
+		}
+	}
+	dimNode.splitPoints = dimNode.splitPoints[:toIndex+1]
 
 	for index, seg := range segments {
-		for i, m := range dimNode.splitPoints[:len(dimNode.splitPoints)-1] {
-			nextM := dimNode.splitPoints[i+1]
+		if seg.Rect[dimName] == nil {
+			continue
+		}
+
+		pos  := dimNode.searchPos(seg.Rect[dimName].(Interval)[0])
+		if pos < 0 || pos >= len(dimNode.splitPoints) {
+			continue
+		}
+
+		for i, m := range dimNode.splitPoints[pos:len(dimNode.splitPoints)-1] {
+			nextM := dimNode.splitPoints[i + pos +1]
 			if seg.Rect[dimName] == nil {
 				continue
+			}
+
+			if seg.Rect[dimName].(Interval)[1].Smaller(m) {
+				break
 			}
 
 			if seg.Rect[dimName].(Interval)[0].SmallerOrEqual(m) &&
