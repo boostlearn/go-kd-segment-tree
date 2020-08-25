@@ -14,10 +14,16 @@ func NewNode(segments []*Segment,
 		return nil
 	}
 
+	conjunctionNode := NewConjunctionNode(tree, segments, nil, 1.0, level+1)
+	conjunctionNodeDecreasePercent := float64(len(segments) - conjunctionNode.MaxInvertNodeNum() * len(tree.dimTypes)) /float64(len(segments))
+	if conjunctionNodeDecreasePercent < 0 {
+		conjunctionNodeDecreasePercent = 0
+	}
+
 	if len(segments) < tree.options.LeafNodeMin || level >= tree.options.TreeLevelMax {
 		mergedSegments := MergeSegments(segments)
-		if len(mergedSegments) > tree.options.LeafNodeMin*4 {
-			return NewConjunctionNode(tree, segments, nil, 1.0, level+1)
+		if conjunctionNodeDecreasePercent > 0 {
+			return conjunctionNode
 		} else {
 			return &LeafNode{
 				Segments: mergedSegments,
@@ -26,10 +32,10 @@ func NewNode(segments []*Segment,
 	}
 
 	dimName, decreasePercent := findBestBranchingDim(segments, tree.dimTypes)
-	if decreasePercent < tree.options.BranchingDecreasePercentMin {
+	if decreasePercent < tree.options.BranchingDecreasePercentMin || decreasePercent < conjunctionNodeDecreasePercent {
 		mergedSegments := MergeSegments(segments)
-		if len(mergedSegments) > tree.options.LeafNodeMin*4 {
-			return NewConjunctionNode(tree, segments, nil, 1.0, level+1)
+		if conjunctionNodeDecreasePercent > 0 {
+			return conjunctionNode
 		} else {
 			return &LeafNode{
 				Segments: mergedSegments,

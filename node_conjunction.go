@@ -21,7 +21,7 @@ type ConjunctionNode struct {
 }
 
 func (node *ConjunctionNode) Search(p Point) []interface{} {
-	segCounter := make([]int, len(node.segments))
+	segCounter := make(map[int]int)
 	for dimName, d := range p {
 		if node.dimNode[dimName] == nil {
 			continue
@@ -43,7 +43,7 @@ func (node *ConjunctionNode) Search(p Point) []interface{} {
 }
 
 func (node *ConjunctionNode) SearchRect(r Rect) []interface{} {
-	segCounter := make([]int, len(node.segments))
+	segCounter :=  make(map[int]int)
 	for dimName, d := range r {
 		if node.dimNode[dimName] == nil {
 			continue
@@ -91,13 +91,26 @@ func NewConjunctionNode(tree *Tree,
 	return node
 }
 
+func (node *ConjunctionNode) MaxInvertNodeNum() int {
+	totalInvertNode := 0
+	for _, dimNode := range node.dimNode {
+		if dimNode == nil {
+			continue
+		}
+
+		totalInvertNode += dimNode.MaxInvertNode()
+	}
+	return totalInvertNode
+}
+
 func (node *ConjunctionNode) Dumps(prefix string) string {
-	return "conjunction_node"
+	return fmt.Sprintf("%v   conjunction_node{max_invert_node=%v}\n", prefix, node.MaxInvertNodeNum())
 }
 
 type ConjunctionDimNode interface {
 	Search(measure Measure) []int
 	SearchRect(rect interface{}) []int
+	MaxInvertNode() int
 }
 
 type ConjunctionDimRealNode struct {
@@ -130,6 +143,20 @@ func (dimNode *ConjunctionDimRealNode) Search(measure Measure) []int {
 	}
 
 	return nil
+}
+
+func (dimNode *ConjunctionDimRealNode) MaxInvertNode() int {
+	if dimNode == nil || len(dimNode.segments) == 0 {
+		return 0
+	}
+
+	maxNodeNum := 0
+	for _, nodes := range dimNode.segments {
+		if len(nodes)  > maxNodeNum {
+			maxNodeNum = len(nodes)
+		}
+	}
+	return maxNodeNum
 }
 
 func (dimNode *ConjunctionDimRealNode) SearchRect(measure interface{}) []int {
@@ -222,6 +249,20 @@ func (node *ConjunctionDimDiscreteNode) Search(measure Measure) []int {
 	return node.segments[measure]
 }
 
+func (node *ConjunctionDimDiscreteNode) MaxInvertNode() int {
+	if node == nil || len(node.segments) == 0 {
+		return 0
+	}
+
+	maxNodeNum := 0
+	for _, nodes := range node.segments {
+		if len(nodes)  > maxNodeNum {
+			maxNodeNum = len(nodes)
+		}
+	}
+	return maxNodeNum
+}
+
 func (node *ConjunctionDimDiscreteNode) SearchRect(scatters interface{}) []int {
 	if node == nil || node.segments == nil {
 		return nil
@@ -249,13 +290,13 @@ func NewDiscreteConjunctionNode(segments []*Segment, dimName interface{}) *Conju
 		dimName:  dimName,
 		segments: make(map[Measure][]int),
 	}
-	for _, seg := range segments {
+	for segIndex, seg := range segments {
 		if seg.Rect[dimName] == nil {
 			continue
 		}
 
-		for index, m := range seg.Rect[dimName].(Scatters) {
-			node.segments[m] = append(node.segments[m], index)
+		for _, m := range seg.Rect[dimName].(Scatters) {
+			node.segments[m] = append(node.segments[m], segIndex)
 		}
 	}
 
