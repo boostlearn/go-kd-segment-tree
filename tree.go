@@ -88,6 +88,11 @@ func (tree *Tree) Add(rect Rect, data interface{}) error {
 	defer tree.updateMu.Unlock()
 
 	for name, d := range rect {
+		if d == nil {
+			delete(rect, name)
+			continue
+		}
+
 		switch d.(type) {
 		case Interval:
 			if tree.dimTypes[name] != DimTypeReal {

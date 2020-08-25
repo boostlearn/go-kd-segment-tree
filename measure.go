@@ -207,10 +207,6 @@ func (rect Rect) Key() string {
 }
 
 func (rect Rect) Contains(p Point) bool {
-	if len(rect) != len(p) {
-		return false
-	}
-
 	for name, d := range rect {
 		switch d.(type) {
 		case Interval:
