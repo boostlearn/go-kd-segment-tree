@@ -1,5 +1,7 @@
 package go_kd_segment_tree
 
+import "math"
+
 type TreeNode interface {
 	Search(p Point) []interface{}
 	SearchRect(rect Rect) []interface{}
@@ -14,29 +16,27 @@ func NewNode(segments []*Segment,
 		return nil
 	}
 
+
+
+	if len(segments) < tree.options.LeafNodeMin || level >= tree.options.TreeLevelMax {
+		mergedSegments := MergeSegments(segments)
+		return &LeafNode{
+			Segments: mergedSegments,
+		}
+	}
+
 	conjunctionNode := NewConjunctionNode(tree, segments, nil, 1.0, level+1)
 	conjunctionNodeDecreasePercent := float64(len(segments) - conjunctionNode.MaxInvertNodeNum()) /float64(len(segments))
 	if conjunctionNodeDecreasePercent < 0 {
 		conjunctionNodeDecreasePercent = 0
 	}
 
-	if len(segments) < tree.options.LeafNodeMin || level >= tree.options.TreeLevelMax {
-		mergedSegments := MergeSegments(segments)
-		if conjunctionNodeDecreasePercent > 0 {
-			return conjunctionNode
-		} else {
-			return &LeafNode{
-				Segments: mergedSegments,
-			}
-		}
-	}
-
 	dimName, decreasePercent := findBestBranchingDim(segments, tree.dimTypes)
-	if decreasePercent < tree.options.BranchingDecreasePercentMin || decreasePercent < conjunctionNodeDecreasePercent {
-		mergedSegments := MergeSegments(segments)
+	if decreasePercent < tree.options.BranchingDecreasePercentMin || math.Pow(1 - decreasePercent, float64(len(tree.dimTypes))) > ( 1 - conjunctionNodeDecreasePercent) {
 		if conjunctionNodeDecreasePercent > 0 {
 			return conjunctionNode
 		} else {
+			mergedSegments := MergeSegments(segments)
 			return &LeafNode{
 				Segments: mergedSegments,
 			}
