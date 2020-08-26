@@ -10,7 +10,7 @@ import (
 const DefaultTreeLevelMax = 16
 const DefaultLeafDataMin = 16
 const DefaultBranchDecreasePercentMin = 0.1
-const DefaultConjunctionTargetRateMin = 0.01
+const DefaultConjunctionTargetRateMin = 0.001
 
 type DimType struct{ Type int }
 
