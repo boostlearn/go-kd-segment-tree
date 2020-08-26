@@ -1,20 +1,20 @@
 ## 简介
 
-对于有大量查询的场景一般需要建立索引来优化查询性能。
-* 在数据仓库里，通过建立索引来优化查询数据。
-* 在一些策略引擎、广告引擎或流量实验系统中，建立索引来优化从数据点查询满足预制条件的定向策略。
+对于有大量查询的场景，一般需要建立索引来优化查询性能：
+* 建立索引来优化对数据仓库的数据检索。
+* 对于策略引擎、广告引擎和实验平台引擎里，建立索引优化对预制定向策略和检索。
 
->本项目主要针对第二种场景。
+>本项目主要优化对定向条件的检索。
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/index_common.png)
 
-对于数据点的索引，常见索引包括BTree,B+Tree, R-Tree, KD-Tree, Radix-Tree等。
-这些索引基本的原理都是通过切割平面来缩小查询范围和加快查询速度。
+数据索引是对数据点的范围检索，常见索引基于BTree,B+Tree, R-Tree, KD-Tree, Radix-Tree等数据结构来实现。
+这些树状索引的基本的原理都是通过设计分割超平面来一步步缩小查询范围来实现快速查询。
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/point_index.png)
 
-定向条件检索的索引也可以通过切割平面来建立索引，但会碰到区域无法按照切割超平面完全切割开的情况。
-本项目针对这些无法切割的区域做出另外处理，切割的效果得到了保证。
+对于定向条件检索的情景，也可以通过切割平面来建立索引。
+切割超平面可能无法实现区域的完整切割，本项目把不能切割的区间单独归属一个查询分支来处理，取得不错效果。
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/segment_index.png)
 
