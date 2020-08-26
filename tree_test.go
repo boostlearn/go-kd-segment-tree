@@ -8,14 +8,15 @@ import (
 )
 
 var testRects []Rect
+var tree *Tree
 var searchPoint []Point
 var dimType map[interface{}]DimType
-var rectNum int = 10000
-var realDimNum int = 0
+var rectNum int = 1000
+var realDimNum int =  0
 var realTargetNum int = 0
-var scatterDimNum int = 30
-var scatterTargetNum int = 3
-var scatterDimSize = 100000
+var scatterDimNum int = 100
+var scatterTargetNum int = 5 
+var scatterDimSize = 100
 
 func init() {
 	dimType = make(map[interface{}]DimType)
@@ -65,6 +66,20 @@ func init() {
 		testRects = append(testRects, rect)
 		searchPoint = append(searchPoint, point)
 	}
+
+	tree = NewTree(dimType, &TreeOptions{
+		TreeLevelMax:                16,
+		LeafNodeMin:                 1,
+		BranchingDecreasePercentMin: 0.001,
+	})
+	for i, rect := range testRects {
+		_ = tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
+	}
+	tree.Build()
+
+	fmt.Println("tree:", tree.Dumps())
+
+
 }
 
 
@@ -83,9 +98,9 @@ func TestNewTree(t *testing.T) {
 	//fmt.Println("notree: ", noTreeTotal)
 
 	tree := NewTree(dimType, &TreeOptions{
-		TreeLevelMax:                1,
-		LeafNodeMin:                 1,
-		BranchingDecreasePercentMin: 0,
+		TreeLevelMax:                16,
+		LeafNodeMin:                 16,
+		BranchingDecreasePercentMin: 0.1,
 	})
 	for i, rect := range testRects[:testSize] {
 		tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
@@ -95,10 +110,10 @@ func TestNewTree(t *testing.T) {
 	//fmt.Println("tree:", tree.Dumps())
 
 	treeTotal := 0
-	for i, p := range searchPoint {
+	for _, p := range searchPoint {
 		d := tree.Search(p)
 		if len(d) > 0 {
-			fmt.Printf("tree: %v %v, %v\n", i, p, d)
+			//fmt.Printf("tree: %v %v, %v\n", i, p, d)
 		}
 		treeTotal += len(d)
 	}
@@ -112,18 +127,6 @@ func TestNewTree(t *testing.T) {
 
 
 func BenchmarkTree_Search(b *testing.B) {
-	tree := NewTree(dimType, &TreeOptions{
-		TreeLevelMax:                16,
-		LeafNodeMin:                 16,
-		BranchingDecreasePercentMin: 0.1,
-	})
-	for i, rect := range testRects {
-		_ = tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
-	}
-	tree.Build()
-
-	fmt.Println("tree:", tree.Dumps())
-
 	b.ReportAllocs()
 	b.ResetTimer()
 
