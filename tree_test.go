@@ -14,7 +14,7 @@ var dimType map[interface{}]DimType
 var rectNum int = 1000
 var realDimNum int =  0
 var realTargetNum int = 0
-var scatterDimNum int = 100
+var scatterDimNum int = 10
 var scatterTargetNum int = 5 
 var scatterDimSize = 100
 
@@ -70,7 +70,8 @@ func init() {
 	tree = NewTree(dimType, &TreeOptions{
 		TreeLevelMax:                16,
 		LeafNodeMin:                 1,
-		BranchingDecreasePercentMin: 0.001,
+		BranchingDecreasePercentMin: 0.1,
+		ConjunctionTargetRateMin: 0.001,
 	})
 	for i, rect := range testRects {
 		_ = tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))

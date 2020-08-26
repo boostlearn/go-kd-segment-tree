@@ -27,13 +27,13 @@ func NewNode(segments []*Segment,
 	conjunctionTargetRate := float64(conjunctionNode.MaxInvertNodeNum()) / float64(len(tree.dimTypes)*len(segments))
 
 	dimName, decreasePercent := findBestBranchingDim(segments, tree.dimTypes)
-	if decreasePercent < tree.options.BranchingDecreasePercentMin || conjunctionTargetRate < 0.01 {
+	if decreasePercent < tree.options.BranchingDecreasePercentMin || conjunctionTargetRate < tree.options.ConjunctionTargetRateMin {
 		return conjunctionNode
 	}
 
 	switch tree.dimTypes[dimName].Type {
 	case DimTypeReal.Type:
-		node, pass, left, right := NewBinaryNode(tree, segments, dimName, decreasePercent, level)
+		node, pass, left, right := NewBinaryNode(tree, segments, dimName, decreasePercent, conjunctionTargetRate, level)
 		if len(pass) > 0 {
 			node.Pass = NewNode(pass, tree, level+1)
 		}
@@ -45,7 +45,7 @@ func NewNode(segments []*Segment,
 		}
 		return node
 	case DimTypeDiscrete.Type:
-		node, passSegments, children := NewHashNode(tree, segments, dimName, decreasePercent, level)
+		node, passSegments, children := NewHashNode(tree, segments, dimName, decreasePercent, conjunctionTargetRate, level)
 		for childKey, childSegments := range children {
 			node.child[childKey] = NewNode(childSegments, tree, level+1)
 		}

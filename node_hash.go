@@ -13,6 +13,7 @@ type HashNode struct {
 	DimName         interface{}
 	Level           int
 	DecreasePercent float64
+	ConjunctionTargetRate float64
 
 	child map[Measure]TreeNode
 	pass  TreeNode
@@ -90,7 +91,8 @@ func (node *HashNode) Dumps(prefix string) string {
 	}
 
 	var msgs []string
-	msgs = append(msgs, fmt.Sprintf("%s -hnode{dim:%d, decreasePercent:%v}\n", prefix, node.DimName, node.DecreasePercent))
+	msgs = append(msgs, fmt.Sprintf("%s -hnode{dim:%d, decreasePercent:%v, conjunctionTargetRate:%v}\n",
+		prefix, node.DimName, node.DecreasePercent, node.ConjunctionTargetRate))
 	if node.pass != nil  {
 		msgs = append(msgs, node.pass.Dumps(fmt.Sprintf("%v    %v:", prefix, "<PASS>")))
 	}
@@ -104,6 +106,7 @@ func NewHashNode(tree *Tree,
 	segments []*Segment,
 	dimName interface{},
 	decreasePercent float64,
+	conjunctionTargetRate float64,
 	level int,
 ) (*HashNode, []*Segment, map[Measure][]*Segment) {
 	hashSegments := make(map[Measure][]*Segment)
@@ -124,6 +127,7 @@ func NewHashNode(tree *Tree,
 		DimName:         dimName,
 		Level:           level,
 		DecreasePercent: decreasePercent,
+		ConjunctionTargetRate: conjunctionTargetRate,
 		child:           make(map[Measure]TreeNode),
 	}
 
