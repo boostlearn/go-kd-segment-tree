@@ -10,6 +10,7 @@ import (
 const DefaultTreeLevelMax = 16
 const DefaultLeafDataMin = 16
 const DefaultBranchDecreasePercentMin = 0.1
+const DefaultConjunctionTargetRateMin = 0.001
 
 type DimType struct{ Type int }
 
@@ -32,6 +33,7 @@ type TreeOptions struct {
 	TreeLevelMax                int
 	LeafNodeMin                 int
 	BranchingDecreasePercentMin float64
+	ConjunctionTargetRateMin float64
 }
 
 func NewTree(dimTypes map[interface{}]DimType, opts *TreeOptions) *Tree {
@@ -50,6 +52,11 @@ func NewTree(dimTypes map[interface{}]DimType, opts *TreeOptions) *Tree {
 	if opts.BranchingDecreasePercentMin == 0.0 {
 		opts.BranchingDecreasePercentMin = DefaultBranchDecreasePercentMin
 	}
+
+	if opts.ConjunctionTargetRateMin == 0 {
+		opts.ConjunctionTargetRateMin = DefaultConjunctionTargetRateMin
+	}
+
 	return &Tree{
 		dimTypes: dimTypes,
 		options:  opts,

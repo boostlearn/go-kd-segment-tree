@@ -14,38 +14,26 @@ func NewNode(segments []*Segment,
 		return nil
 	}
 
-	conjunctionNode := NewConjunctionNode(tree, segments, nil, 1.0, level+1)
-	conjunctionNodeDecreasePercent := float64(len(segments) - conjunctionNode.MaxInvertNodeNum()) /float64(len(segments))
-	if conjunctionNodeDecreasePercent < 0 {
-		conjunctionNodeDecreasePercent = 0
-	}
 
-	if len(segments) < tree.options.LeafNodeMin || level >= tree.options.TreeLevelMax {
+
+	if len(segments) <= tree.options.LeafNodeMin || level >= tree.options.TreeLevelMax {
 		mergedSegments := MergeSegments(segments)
-		if conjunctionNodeDecreasePercent > 0 {
-			return conjunctionNode
-		} else {
-			return &LeafNode{
-				Segments: mergedSegments,
-			}
+		return &LeafNode{
+			Segments: mergedSegments,
 		}
 	}
+
+	conjunctionNode := NewConjunctionNode(tree, segments, nil, 1.0, level+1)
+	conjunctionTargetRate := float64(conjunctionNode.MaxInvertNodeNum()) / float64(len(tree.dimTypes)*len(segments))
 
 	dimName, decreasePercent := findBestBranchingDim(segments, tree.dimTypes)
-	if decreasePercent < tree.options.BranchingDecreasePercentMin || decreasePercent < conjunctionNodeDecreasePercent {
-		mergedSegments := MergeSegments(segments)
-		if conjunctionNodeDecreasePercent > 0 {
-			return conjunctionNode
-		} else {
-			return &LeafNode{
-				Segments: mergedSegments,
-			}
-		}
+	if decreasePercent < tree.options.BranchingDecreasePercentMin || conjunctionTargetRate < tree.options.ConjunctionTargetRateMin {
+		return conjunctionNode
 	}
 
 	switch tree.dimTypes[dimName].Type {
 	case DimTypeReal.Type:
-		node, pass, left, right := NewBinaryNode(tree, segments, dimName, decreasePercent, level)
+		node, pass, left, right := NewBinaryNode(tree, segments, dimName, decreasePercent, conjunctionTargetRate, level)
 		if len(pass) > 0 {
 			node.Pass = NewNode(pass, tree, level+1)
 		}
@@ -57,7 +45,7 @@ func NewNode(segments []*Segment,
 		}
 		return node
 	case DimTypeDiscrete.Type:
-		node, passSegments, children := NewHashNode(tree, segments, dimName, decreasePercent, level)
+		node, passSegments, children := NewHashNode(tree, segments, dimName, decreasePercent, conjunctionTargetRate, level)
 		for childKey, childSegments := range children {
 			node.child[childKey] = NewNode(childSegments, tree, level+1)
 		}
