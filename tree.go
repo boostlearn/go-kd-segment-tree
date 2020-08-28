@@ -97,7 +97,7 @@ func (tree *Tree) Add(rect Rect, data interface{}) error {
 		}
 
 		switch d.(type) {
-		case Interval, Intervals:
+		case Interval:
 			if tree.dimTypes[name] != DimTypeReal {
 				return errors.New(fmt.Sprintf("dim type error:%v", name))
 			}
@@ -105,6 +105,8 @@ func (tree *Tree) Add(rect Rect, data interface{}) error {
 			if tree.dimTypes[name] != DimTypeDiscrete {
 				return errors.New(fmt.Sprintf("dim type error:%v", name))
 			}
+		default:
+			return  errors.New(fmt.Sprintf("not support rect type:%v", name))
 		}
 	}
 
@@ -128,7 +130,7 @@ func (tree *Tree) Insert(rect Rect, data interface{}) error {
 		}
 
 		switch d.(type) {
-		case Interval, Intervals:
+		case Interval:
 			if tree.dimTypes[name] != DimTypeReal {
 				return errors.New(fmt.Sprintf("dim type error:%v", name))
 			}
@@ -136,6 +138,8 @@ func (tree *Tree) Insert(rect Rect, data interface{}) error {
 			if tree.dimTypes[name] != DimTypeDiscrete {
 				return errors.New(fmt.Sprintf("dim type error:%v", name))
 			}
+		default:
+			return  errors.New(fmt.Sprintf("not support rect type:%v", name))
 		}
 	}
 
