@@ -69,14 +69,35 @@ func (tree *Tree) Search(p Point) []interface{} {
 	return tree.root.Search(p)
 }
 
-func (tree *Tree) SearchRect(r Rect) []interface{} {
+func (tree *Tree) SearchRect(r Rect) ([]interface{}, error) {
 	tree.mu.RLock()
 	defer tree.mu.RUnlock()
 
 	if tree.root == nil {
-		return nil
+		return nil, nil
 	}
-	return tree.root.SearchRect(r)
+
+	for name, d := range r {
+		if d == nil {
+			delete(r, name)
+			continue
+		}
+
+		switch d.(type) {
+		case Interval:
+			if tree.dimTypes[name] != DimTypeReal {
+				return nil, errors.New(fmt.Sprintf("dim type error:%v", name))
+			}
+		case Measures:
+			if tree.dimTypes[name] != DimTypeDiscrete {
+				return nil, errors.New(fmt.Sprintf("dim type error:%v", name))
+			}
+		default:
+			return  nil, errors.New(fmt.Sprintf("not support rect type:%v", name))
+		}
+	}
+
+	return tree.root.SearchRect(r), nil
 }
 
 func (tree *Tree) Dumps() string {
