@@ -22,7 +22,7 @@ Constraint retrieval can also speed up retrieval by cutting the plane, but it re
 **Select 10 in 10-dimensional discrete space**
 >there are 100 optional values per discrete space
 
-|Number of targeting constraints|QPS without index|QPS with index|speedup|
+|Number of constraints|QPS without index|QPS with index|speedup|
 |----|----|---|----|
 |100|80998|485201|6|
 |1000|7767|427899|55|
@@ -31,7 +31,7 @@ Constraint retrieval can also speed up retrieval by cutting the plane, but it re
 
 **Select 5 in 5-dimensional numerical space**
 
-|Number of targeting constraints|QPS without index|QPS with index|speedup|
+|Number of constraints|QPS without index|QPS with index|speedup|
 |----|----|---|----|
 |100|93110|270197|3|
 |1000|8904|162522|18|
@@ -40,7 +40,7 @@ Constraint retrieval can also speed up retrieval by cutting the plane, but it re
 
 **Select 3 for 5-dimensional numerical space and 5 for 20-dimensional discrete space**
 
-|Number of targeting constraints |QPS without index|QPS with index|speedup|
+|Number of constraints |QPS without index|QPS with index|speedup|
 |----|----|---|----|
 |100|69842|173792|2|
 |1000|6313|88660|14|
