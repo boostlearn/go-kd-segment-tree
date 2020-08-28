@@ -4,18 +4,18 @@ For scenarios with many queries, index is used to optimize query performance gen
 
 There are two conditions:
 * Build indexes to optimize data retrieval in the database.
-* For some strategy engine, advertising engine, experimental platform engine and so on, need build index to optimize match pre-designed strategy constraints and retrieve quickly.
+* build index to optimize match pre-designed strategy constraints for some strategy engine, advertising engine, experimental platform engine and so on.
 
->This project mainly optimizes the second condition.
+>This project is working in the second condition.
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/index_common.png)
 
-Data index is used to fast searching of data points, which implemented based on BTree, B+Tree, R-Tree, KD-Tree, Radix-Tree and other data structures.
-The basic principle of these tree indexes is to narrow the query range step by step to achieve fast query by designing split hyperplanes.
+Database index is mainly working for speedup searching of data points, which may be implemented based on BTree, B+Tree, R-Tree, KD-Tree, Radix-Tree and other data structures.
+The basic principle of these data point tree indexes is to narrow the query range step by step to achieve fast query by designing split hyperplanes.
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/point_index.png)
 
-For the scenarios of directional condition retrieval, the index can also be established by cutting the plane.
+For the scenarios of query constraints retrieval, the index can also be established by cutting the plane.
 Cutting the hyperplane may not be able to achieve complete cutting of the area. In this project, the section that cannot be cut is assigned to a query branch to process it, and good results have been achieved.
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/segment_index.png)
