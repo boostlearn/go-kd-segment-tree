@@ -8,7 +8,7 @@
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/index_common.png)
 
-数据库索引主要用于加速数据点搜索，并且可以基于BTree，B + Tree，R-Tree，KD-Tree，Radix-Tree或其他数据结构来构建。
+数据库索引主要用于加速数据点搜索，并且可以基于B-Tree，B+Tree，R-Tree，KD-Tree，Radix-Tree,HashTree或其他数据结构来构建。
 这些数据点树索引的基本原理是通过设计分解超平面来缩小查询范围。
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/point_index.png)

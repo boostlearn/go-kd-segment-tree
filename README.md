@@ -8,7 +8,7 @@ Generally, we need to establish data indexes to speed up data retrieval in the f
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/index_common.png)
 
-Database index is mainly used to accelerate data point search, and can be constructed based on BTree, B + Tree, R-Tree, KD-Tree, Radix-Tree or other data structures.
+Database indexes are mainly to be used to accelerate data point search, and can be constructed based on B-Tree, B+Tree, R-Tree, KD-Tree, Radix-Tree, HashTree or other data structures.
 The basic principle of these data point tree indexes is to narrow the query scope by designing decomposition hyperplanes.
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/point_index.png)
