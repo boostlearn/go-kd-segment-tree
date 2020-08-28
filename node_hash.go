@@ -58,11 +58,11 @@ func (node *HashNode) SearchRect(r Rect) []interface{} {
 		return nil
 	}
 
-	if _, ok := r[node.DimName].(Scatters); ok == false {
+	if _, ok := r[node.DimName].(Measures); ok == false {
 		return nil
 	}
 
-	scatters := r[node.DimName].(Scatters)
+	scatters := r[node.DimName].(Measures)
 
 	var defaultResult []interface{}
 	if node.pass != nil {
@@ -101,11 +101,11 @@ func (node *HashNode) Insert(seg *Segment) error {
 		}
 	}
 
-	if _, ok := seg.Rect[node.DimName].(Scatters); ok == false {
+	if _, ok := seg.Rect[node.DimName].(Measures); ok == false {
 		return errors.New(fmt.Sprintf("wrong hash scatters: %v", node.DimName))
 	}
 
-	scatters := seg.Rect[node.DimName].(Scatters)
+	scatters := seg.Rect[node.DimName].(Measures)
 
 	for _, x := range scatters {
 		if child, ok := node.child[x]; ok {
@@ -149,7 +149,7 @@ func NewHashNode(tree *Tree,
 			passSegments = append(passSegments, seg)
 			continue
 		}
-		for _, key := range seg.Rect[dimName].(Scatters) {
+		for _, key := range seg.Rect[dimName].(Measures) {
 			hashSegments[key] = append(hashSegments[key], seg)
 		}
 	}

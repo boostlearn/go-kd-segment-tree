@@ -144,6 +144,7 @@ func (f MeasureTime) SmallerOrEqual(b interface{}) bool {
 }
 
 type Interval [2]Measure
+type Intervals []Interval
 
 func (i Interval) Contains(p Measure) bool {
 	if p == nil {
@@ -153,9 +154,9 @@ func (i Interval) Contains(p Measure) bool {
 	return p.BiggerOrEqual(i[0]) && p.SmallerOrEqual(i[1])
 }
 
-type Scatters []Measure
+type Measures []Measure
 
-func (s Scatters) Contains(p Measure) bool {
+func (s Measures) Contains(p Measure) bool {
 	if p == nil {
 		return true
 	}
@@ -178,9 +179,9 @@ func (rect Rect) Clone() Rect {
 		switch d.(type) {
 		case Interval:
 			newRect[name] = Interval{d.(Interval)[0], d.(Interval)[1]}
-		case Scatters:
-			var newSc Scatters
-			for _, s := range d.(Scatters) {
+		case Measures:
+			var newSc Measures
+			for _, s := range d.(Measures) {
 				newSc = append(newSc, s)
 			}
 			newRect[name] = newSc
@@ -197,9 +198,9 @@ func (rect Rect) Key() string {
 		case Interval:
 			dimKeys = append(dimKeys, fmt.Sprintf("%v=%v_%v",
 				name, d.(Interval)[0], d.(Interval)[1]))
-		case Scatters:
+		case Measures:
 			dimKeys = append(dimKeys, fmt.Sprintf("%v_%v",
-				name, d.(Scatters)))
+				name, d.(Measures)))
 		}
 
 	}
@@ -213,8 +214,30 @@ func (rect Rect) Contains(p Point) bool {
 			if d.(Interval).Contains(p[name]) == false {
 				return false
 			}
-		case Scatters:
-			if d.(Scatters).Contains(p[name]) == false {
+		case Intervals:
+			found := false
+			for _, interval := range d.(Intervals) {
+				if interval.Contains(p[name]) {
+					found = true
+					break
+				}
+			}
+			if found == false {
+				return false
+			}
+		case Measure:
+			if d.(Measure).Equal(p[name]) == false {
+				return false
+			}
+		case Measures:
+			found := false
+			for _, dD := range d.(Measures) {
+				if dD.Equal(p[name]) {
+					found = true
+					break
+				}
+			}
+			if found == false {
 				return false
 			}
 		}
@@ -232,28 +255,107 @@ func (rect Rect) HasIntersect(s Rect) bool {
 
 		switch d.(type) {
 		case Interval:
-			if sD, ok := p.(Interval); ok {
-				if d.(Interval).Contains(sD[0]) == false && d.(Interval).Contains(sD[1]) == false {
+			switch p.(type) {
+			case Interval:
+				if d.(Interval).Contains(p.(Interval)[0]) == false && d.(Interval).Contains(p.(Interval)[1]) == false {
 					return false
 				}
-			} else {
+			case Intervals:
+				found := false
+				for _, pInterval := range p.(Intervals) {
+					if d.(Interval).Contains(pInterval[0])  || d.(Interval).Contains(pInterval[1])  {
+						found  = true
+						break
+					}
+				}
+				if found == false {
+					return false
+				}
+			default:
 				return false
 			}
-		case Scatters:
-			if sD, ok := p.(Scatters); ok {
-				match := false
-				for _, i := range d.(Scatters) {
-					for _, j := range sD {
-						if i == j {
-							match = true
+		case Intervals:
+			switch p.(type) {
+			case Interval:
+				found := false
+				for _, dInterval := range d.(Intervals) {
+					if dInterval.Contains(p.(Interval)[0])  || d.(Interval).Contains(p.(Interval)[1])  {
+						found  = true
+						break
+					}
+				}
+				if found == false {
+					return false
+				}
+			case Intervals:
+				found := false
+				for _, dInterval := range d.(Intervals) {
+					for _, pInterval := range p.(Intervals) {
+						if dInterval.Contains(pInterval[0]) || dInterval.Contains(pInterval[1]) {
+							found = true
 							break
 						}
 					}
+					if found == true {
+						break
+					}
 				}
-				if match == false {
+				if found == false {
 					return false
 				}
-			} else {
+			default:
+				return false
+			}
+		case Measure:
+			switch p.(type) {
+			case Measure:
+				if d.(Measure).Equal(p.(Measure)) == false {
+					return false
+				}
+			case Measures:
+				found := false
+				for _, pP := range p.(Measures) {
+					if d.(Measure).Equal(pP) {
+						found = true
+						break
+					}
+				}
+				if found == false {
+					return false
+				}
+			default:
+				return false
+			}
+		case Measures:
+			switch p.(type) {
+			case Measure:
+				found := false
+				for _, dD := range d.(Measures) {
+					if dD.Equal(p.(Measure)) == false {
+						found = true
+						break
+					}
+				}
+				if found == false {
+					return false
+				}
+			case Measures:
+				found := false
+				for _, dD := range d.(Measures) {
+					for _, pP := range p.(Measures) {
+						if dD.Equal(pP) {
+							found = true
+							break
+						}
+					}
+					if found {
+						break
+					}
+				}
+				if found == false {
+					return false
+				}
+			default:
 				return false
 			}
 		}

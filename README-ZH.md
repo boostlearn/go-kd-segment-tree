@@ -58,12 +58,12 @@
 		"Field2": DimTypeReal, // 连续空间
 	}, &TreeOptions{
 		TreeLevelMax:                16, // 最大树高
-		LeafNodeMin:                 4, // 叶子节点最大数据条目
+		LeafNodeDataMax:                 4, // 叶子节点最大数据条目
 		BranchingDecreasePercentMin: 0.1, // 最小分割率
 	})
 
 	err := tree1.Add(Rect{
-		"Field1": Scatters{MeasureString("one"), MeasureString("two"), MeasureString("three")}, // 离散值定向
+		"Field1": Measures{MeasureString("one"), MeasureString("two"), MeasureString("three")}, // 离散值定向
 		"Field2": Interval{MeasureFloat(0.1), MeasureFloat(2.0)}}, // 连续值定向
 		"target1")
 	if err != nil {

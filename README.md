@@ -57,12 +57,12 @@ Constraint retrieval can also speed up retrieval by cutting the plane, but it re
 		"Field2": DimTypeReal, // real space
 	}, &TreeOptions{
 		TreeLevelMax:                16, // tree's max height
-		LeafNodeMin:                 4, // max data number within leaf node
+		LeafNodeDataMax:                 4, // max data number within leaf node
 		BranchingDecreasePercentMin: 0.1, // min split ratio
 	})
 
 	err := tree1.Add(Rect{
-		"Field1": Scatters{MeasureString("one"), MeasureString("two"), MeasureString("three")}, // targeting discrete string 
+		"Field1": Measures{MeasureString("one"), MeasureString("two"), MeasureString("three")}, // targeting discrete string 
 		"Field2": Interval{MeasureFloat(0.1), MeasureFloat(2.0)}}, // target real interval
 		"target1")
 	if err != nil {

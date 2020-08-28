@@ -174,7 +174,7 @@ func getDiscreteDimSegmentsDecrease(segments []*Segment, dimName interface{}) (i
 
 	var scatterMap = make(map[Measure]int)
 	for _, seg := range dimSegments {
-		for _, s := range seg.Rect[dimName].(Scatters) {
+		for _, s := range seg.Rect[dimName].(Measures) {
 			scatterMap[s] = scatterMap[s] + 1
 		}
 	}

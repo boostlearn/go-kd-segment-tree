@@ -306,12 +306,12 @@ func (node *ConjunctionDimDiscreteNode) SearchRect(scatters interface{}) []int {
 	if node == nil || node.segments == nil {
 		return nil
 	}
-	if _, ok := scatters.(Scatters); ok == false {
+	if _, ok := scatters.(Measures); ok == false {
 		return nil
 	}
 
 	matchSegments := mapset.NewSet()
-	for _, d := range scatters.(Scatters) {
+	for _, d := range scatters.(Measures) {
 		for _, seg := range node.segments[d] {
 			matchSegments.Add(seg)
 		}
@@ -334,7 +334,7 @@ func NewDiscreteConjunctionNode(segments []*Segment, dimName interface{}) *Conju
 			continue
 		}
 
-		for _, m := range seg.Rect[dimName].(Scatters) {
+		for _, m := range seg.Rect[dimName].(Measures) {
 			node.segments[m] = append(node.segments[m], segIndex)
 		}
 	}

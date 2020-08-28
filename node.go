@@ -15,7 +15,7 @@ func NewNode(segments []*Segment,
 		return nil
 	}
 
-	if len(segments) <= tree.options.LeafNodeMin || level >= tree.options.TreeLevelMax {
+	if len(segments) <= tree.options.LeafNodeDataMax || level >= tree.options.TreeLevelMax {
 		mergedSegments := MergeSegments(segments)
 		return &LeafNode{
 			Segments: mergedSegments,

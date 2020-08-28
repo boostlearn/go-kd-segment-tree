@@ -8,7 +8,7 @@ import (
 )
 
 const DefaultTreeLevelMax = 16
-const DefaultLeafDataMin = 4
+const DefaultLeafDataMax = 4
 const DefaultBranchDecreasePercentMin = 0.1
 
 type DimType struct{ Type int }
@@ -31,7 +31,7 @@ type Tree struct {
 
 type TreeOptions struct {
 	TreeLevelMax                int
-	LeafNodeMin                 int
+	LeafNodeDataMax                 int
 	BranchingDecreasePercentMin float64
 	ConjunctionTargetRateMin    float64
 }
@@ -45,8 +45,8 @@ func NewTree(dimTypes map[interface{}]DimType, opts *TreeOptions) *Tree {
 		opts.TreeLevelMax = DefaultTreeLevelMax
 	}
 
-	if opts.LeafNodeMin == 0 {
-		opts.LeafNodeMin = DefaultLeafDataMin
+	if opts.LeafNodeDataMax == 0 {
+		opts.LeafNodeDataMax = DefaultLeafDataMax
 	}
 
 	if opts.BranchingDecreasePercentMin == 0.0 {
@@ -97,11 +97,11 @@ func (tree *Tree) Add(rect Rect, data interface{}) error {
 		}
 
 		switch d.(type) {
-		case Interval:
+		case Interval, Intervals:
 			if tree.dimTypes[name] != DimTypeReal {
 				return errors.New(fmt.Sprintf("dim type error:%v", name))
 			}
-		case Scatters:
+		case Measures:
 			if tree.dimTypes[name] != DimTypeDiscrete {
 				return errors.New(fmt.Sprintf("dim type error:%v", name))
 			}
@@ -128,11 +128,11 @@ func (tree *Tree) Insert(rect Rect, data interface{}) error {
 		}
 
 		switch d.(type) {
-		case Interval:
+		case Interval, Intervals:
 			if tree.dimTypes[name] != DimTypeReal {
 				return errors.New(fmt.Sprintf("dim type error:%v", name))
 			}
-		case Scatters:
+		case Measures:
 			if tree.dimTypes[name] != DimTypeDiscrete {
 				return errors.New(fmt.Sprintf("dim type error:%v", name))
 			}

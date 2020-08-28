@@ -50,7 +50,7 @@ func init() {
 
 		for j := 0; j < scatterDimNum; j++ {
 			k := rand.Intn(scatterDimSize)
-			rect[j+realDimNum] = Scatters{MeasureFloat(k)}
+			rect[j+realDimNum] = Measures{MeasureFloat(k)}
 			point[j+realDimNum] = MeasureFloat(k)
 		}
 
@@ -70,7 +70,7 @@ func init() {
 
 	tree = NewTree(dimType, &TreeOptions{
 		TreeLevelMax:                16,
-		LeafNodeMin:                 4,
+		LeafNodeDataMax:                 4,
 		BranchingDecreasePercentMin: 0.1,
 	})
 	for i, rect := range testRects {
@@ -98,7 +98,7 @@ func TestNewTree(t *testing.T) {
 
 	tree := NewTree(dimType, &TreeOptions{
 		TreeLevelMax:                16,
-		LeafNodeMin:                 16,
+		LeafNodeDataMax:                 16,
 		BranchingDecreasePercentMin: 0.1,
 	})
 	for i, rect := range testRects[:testSize] {
@@ -128,12 +128,12 @@ func TestNewTree(t *testing.T) {
 		"Field2": DimTypeReal,
 	}, &TreeOptions{
 		TreeLevelMax:                16,
-		LeafNodeMin:                 4,
+		LeafNodeDataMax:                 4,
 		BranchingDecreasePercentMin: 0.1,
 	})
 
 	err := tree1.Add(Rect{
-		"Field1": Scatters{MeasureString("one"), MeasureString("two"), MeasureString("three")},
+		"Field1": Measures{MeasureString("one"), MeasureString("two"), MeasureString("three")},
 		"Field2": Interval{MeasureFloat(0.1), MeasureFloat(2.0)}},
 		"target1")
 	if err != nil {
