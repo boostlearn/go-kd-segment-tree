@@ -1,3 +1,5 @@
+[中文](./README-ZH.md)
+
 ## Introduction
 
 Generally, we need to establish data indexes to speed up data retrieval in the following two situations:
