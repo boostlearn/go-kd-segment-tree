@@ -131,6 +131,10 @@ func getRealDimSegmentsDecrease(segments []*Segment, dimName interface{}) (int, 
 		starts = append(starts, seg.Rect[dimName].(Interval)[0])
 		ends = append(ends, seg.Rect[dimName].(Interval)[1])
 	}
+	if len(starts) == 0 || len(ends) == 0 {
+		return 0, nil
+	}
+
 	sort.Sort(&sortMeasures{measures: starts})
 	sort.Sort(&sortMeasures{measures: ends})
 	pos := 0
@@ -139,20 +143,20 @@ func getRealDimSegmentsDecrease(segments []*Segment, dimName interface{}) (int, 
 	}
 	midMeasure := ends[pos]
 
-	leftNum := 0
-	rightNum := 0
+	leftCuttingNum := 0
+	rightCuttingNum := 0
 	for _, seg := range dimSegments {
 		if seg.Rect[dimName].(Interval)[1].Smaller(midMeasure) {
-			leftNum += 1
+			leftCuttingNum += 1
 		} else if seg.Rect[dimName].(Interval)[0].BiggerOrEqual(midMeasure) {
-			rightNum += 1
+			rightCuttingNum += 1
 		}
 	}
 
-	if leftNum < rightNum {
-		return leftNum, midMeasure
+	if leftCuttingNum < rightCuttingNum {
+		return leftCuttingNum, midMeasure
 	} else {
-		return rightNum, midMeasure
+		return rightCuttingNum, midMeasure
 	}
 
 }
@@ -174,14 +178,19 @@ func getDiscreteDimSegmentsDecrease(segments []*Segment, dimName interface{}) (i
 			scatterMap[s] = scatterMap[s] + 1
 		}
 	}
-	var maxCounter = 0
+	var hottestKeyMatchNum = 0
 	var maxMeasure Measure
 	for m, n := range scatterMap {
-		if n > maxCounter {
-			maxCounter = n
+		if n > hottestKeyMatchNum {
+			hottestKeyMatchNum = n
 			maxMeasure = m
 		}
 	}
 
-	return len(dimSegments) - maxCounter, maxMeasure
+	if hottestKeyMatchNum < len(segments) - len(dimSegments) {
+		hottestKeyMatchNum = len(segments) - len(dimSegments)
+		maxMeasure = nil
+	}
+
+	return len(segments) - hottestKeyMatchNum, maxMeasure
 }

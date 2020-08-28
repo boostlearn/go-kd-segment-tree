@@ -14,7 +14,6 @@ type BinaryNode struct {
 	DimName         interface{}
 	Level           int
 	DecreasePercent float64
-	ConjunctionTargetRate float64
 
 	Mid Measure
 
@@ -112,8 +111,8 @@ func (node *BinaryNode) Dumps(prefix string) string {
 		return ""
 	}
 
-	return fmt.Sprintf("%s -bnode{dim:%d, decreasePercent:%v, conjunctionTargetRate:%v, mid:%v}\n%v\n%v\n", prefix,
-		node.DimName, node.DecreasePercent, node.ConjunctionTargetRate, node.Mid,
+	return fmt.Sprintf("%s -bnode{dim:%d, decreasePercent:%v, mid:%v}\n%v\n%v\n", prefix,
+		node.DimName, node.DecreasePercent, node.Mid,
 		node.Left.Dumps(prefix+"    "), node.Right.Dumps(prefix+"    "))
 }
 
@@ -121,7 +120,6 @@ func NewBinaryNode(tree *Tree,
 	segments []*Segment,
 	dimName interface{},
 	decreasePercent float64,
-	conjunctionTargetRate float64,
 	level int,
 ) (*BinaryNode, []*Segment, []*Segment, []*Segment) {
 	sort.Stable(&sortSegments{dimName: dimName, segments: segments})
@@ -136,7 +134,6 @@ func NewBinaryNode(tree *Tree,
 		DimName:         dimName,
 		Level:           level,
 		DecreasePercent: decreasePercent,
-		ConjunctionTargetRate: conjunctionTargetRate,
 		Mid:             midMeasure,
 	}
 
