@@ -2,6 +2,7 @@ package go_kd_segment_tree
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -19,7 +20,7 @@ var scatterTargetNum int = 5
 var scatterDimSize = 100
 
 func init() {
-	dimType = make(map[interface{}]DimType)
+	dimType = make(DimTypes)
 	for j := 0; j < realDimNum; j++ {
 		dimType[j] = DimTypeReal
 	}
@@ -120,6 +121,30 @@ func TestNewTree(t *testing.T) {
 		t.Fatal("miss match:", noTreeTotal, " ", treeTotal)
 	} else {
 		//t.Log("match:", noTreeTotal, " ", treeTotal)
+	}
+
+	tree1 := NewTree(DimTypes{
+		"Field1": DimTypeDiscrete,
+		"Field2": DimTypeReal,
+	}, &TreeOptions{
+		TreeLevelMax:                16,
+		LeafNodeMin:                 4,
+		BranchingDecreasePercentMin: 0.1,
+	})
+
+	err := tree1.Add(Rect{
+		"Field1": Scatters{MeasureString("one"), MeasureString("two"), MeasureString("three")},
+		"Field2": Interval{MeasureFloat(0.1), MeasureFloat(2.0)}},
+		"target1")
+	if err != nil {
+		log.Fatal("node add error:", err)
+	}
+	tree1.Build()
+
+	result := tree1.Search(Point{"Field1": MeasureString("one"), "Field2": MeasureFloat(0.3)})
+
+	if len(result) != 1 || result[0].(string) != "target1" {
+		log.Fatal("tree search error")
 	}
 }
 

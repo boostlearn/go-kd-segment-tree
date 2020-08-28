@@ -12,6 +12,7 @@ const DefaultLeafDataMin = 4
 const DefaultBranchDecreasePercentMin = 0.1
 
 type DimType struct{ Type int }
+type DimTypes map[interface{}]DimType
 
 var DimTypeDiscrete = DimType{Type: 0}
 var DimTypeReal = DimType{Type: 1}
