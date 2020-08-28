@@ -69,9 +69,8 @@ func init() {
 
 	tree = NewTree(dimType, &TreeOptions{
 		TreeLevelMax:                16,
-		LeafNodeMin:                 1,
+		LeafNodeMin:                 4,
 		BranchingDecreasePercentMin: 0.1,
-		ConjunctionTargetRateMin:    0.001,
 	})
 	for i, rect := range testRects {
 		_ = tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
