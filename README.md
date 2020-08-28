@@ -1,22 +1,19 @@
 ## Introduction
 
-For scenarios with many queries, index is used to optimize query performance generally.
+Generally, we need to establish data indexes to speed up data retrieval in the following two situations:
+* Build indexes to optimize data retrieval in some database.
+* Build indexes to optimize constraints matching in some strategy engine, advertising engine, experimental platform engine and so on.
 
-There are two conditions:
-* Build indexes to optimize data retrieval in the database.
-* build index to optimize match pre-designed strategy constraints for some strategy engine, advertising engine, experimental platform engine and so on.
-
->This project is working in the second condition.
+>This project is working in the second situation.
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/index_common.png)
 
-Database index is mainly working for speedup searching of data points, which may be implemented based on BTree, B+Tree, R-Tree, KD-Tree, Radix-Tree and other data structures.
-The basic principle of these data point tree indexes is to narrow the query range step by step to achieve fast query by designing split hyperplanes.
+Database index is mainly used to accelerate data point search, and can be constructed based on BTree, B + Tree, R-Tree, KD-Tree, Radix-Tree or other data structures.
+The basic principle of these data point tree indexes is to narrow the query scope by designing decomposition hyperplanes.
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/point_index.png)
 
-For the scenarios of query constraints retrieval, the index can also be established by cutting the plane.
-Cutting the hyperplane may not be able to achieve complete cutting of the area. In this project, the section that cannot be cut is assigned to a query branch to process it, and good results have been achieved.
+Constraint retrieval can also speed up retrieval by cutting the plane, but it requires some special processing. This project optimized the algorithm for selecting the cutting plane and achieved good results.
 
 ![avatar](https://github.com/boostlearn/go-kd-segment-tree/raw/master/doc/segment_index.png)
 
@@ -25,7 +22,7 @@ Cutting the hyperplane may not be able to achieve complete cutting of the area. 
 **Select 10 in 10-dimensional discrete space**
 >there are 100 optional values per discrete space
 
-|Number of targeted queries|QPS without index|QPS with index|speedup|
+|Number of targeting constraints|QPS without index|QPS with index|speedup|
 |----|----|---|----|
 |100|80998|485201|6|
 |1000|7767|427899|55|
@@ -34,7 +31,7 @@ Cutting the hyperplane may not be able to achieve complete cutting of the area. 
 
 **Select 5 in 5-dimensional numerical space**
 
-|Number of targeted queries|QPS without index|QPS with index|speedup|
+|Number of targeting constraints|QPS without index|QPS with index|speedup|
 |----|----|---|----|
 |100|93110|270197|3|
 |1000|8904|162522|18|
@@ -43,7 +40,7 @@ Cutting the hyperplane may not be able to achieve complete cutting of the area. 
 
 **Select 3 for 5-dimensional numerical space and 5 for 20-dimensional discrete space**
 
-|Number of targeted queries|QPS without index|QPS with index|speedup|
+|Number of targeting constraints |QPS without index|QPS with index|speedup|
 |----|----|---|----|
 |100|69842|173792|2|
 |1000|6313|88660|14|
