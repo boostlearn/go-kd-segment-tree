@@ -12,10 +12,10 @@ var tree *Tree
 var searchPoint []Point
 var dimType map[interface{}]DimType
 var rectNum int = 1000
-var realDimNum int =  0
+var realDimNum int = 0
 var realTargetNum int = 0
 var scatterDimNum int = 10
-var scatterTargetNum int = 5 
+var scatterTargetNum int = 5
 var scatterDimSize = 100
 
 func init() {
@@ -71,7 +71,7 @@ func init() {
 		TreeLevelMax:                16,
 		LeafNodeMin:                 1,
 		BranchingDecreasePercentMin: 0.1,
-		ConjunctionTargetRateMin: 0.001,
+		ConjunctionTargetRateMin:    0.001,
 	})
 	for i, rect := range testRects {
 		_ = tree.Add(rect, "data"+strconv.FormatInt(int64(i), 10))
@@ -80,9 +80,7 @@ func init() {
 
 	fmt.Println("tree:", tree.Dumps())
 
-
 }
-
 
 func TestNewTree(t *testing.T) {
 	testSize := 100
@@ -125,7 +123,6 @@ func TestNewTree(t *testing.T) {
 		//t.Log("match:", noTreeTotal, " ", treeTotal)
 	}
 }
-
 
 func BenchmarkTree_Search(b *testing.B) {
 	b.ReportAllocs()

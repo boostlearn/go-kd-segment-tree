@@ -2,6 +2,7 @@ package go_kd_segment_tree
 
 type TreeNode interface {
 	Search(p Point) []interface{}
+	Insert(seg *Segment) error
 	SearchRect(rect Rect) []interface{}
 	Dumps(prefix string) string
 }
@@ -14,8 +15,6 @@ func NewNode(segments []*Segment,
 		return nil
 	}
 
-
-
 	if len(segments) <= tree.options.LeafNodeMin || level >= tree.options.TreeLevelMax {
 		mergedSegments := MergeSegments(segments)
 		return &LeafNode{
@@ -23,10 +22,8 @@ func NewNode(segments []*Segment,
 		}
 	}
 
-
-
 	dimName, decreasePercent := findBestBranchingDim(segments, tree.dimTypes)
-	if decreasePercent < tree.options.BranchingDecreasePercentMin  {
+	if decreasePercent < tree.options.BranchingDecreasePercentMin {
 		conjunctionNode := NewConjunctionNode(tree, segments, nil, 1.0, level+1)
 		conjunctionTargetRate := float64(conjunctionNode.MaxInvertNodeNum()) / float64(len(tree.dimTypes)*len(segments))
 		if conjunctionTargetRate < tree.options.ConjunctionTargetRateMin {

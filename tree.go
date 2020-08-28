@@ -33,7 +33,7 @@ type TreeOptions struct {
 	TreeLevelMax                int
 	LeafNodeMin                 int
 	BranchingDecreasePercentMin float64
-	ConjunctionTargetRateMin float64
+	ConjunctionTargetRateMin    float64
 }
 
 func NewTree(dimTypes map[interface{}]DimType, opts *TreeOptions) *Tree {
@@ -119,6 +119,37 @@ func (tree *Tree) Add(rect Rect, data interface{}) error {
 
 	tree.segments = append(tree.segments, seg)
 	return nil
+}
+
+func (tree *Tree) Insert(rect Rect, data interface{}) error {
+	tree.updateMu.Lock()
+	defer tree.updateMu.Unlock()
+
+	for name, d := range rect {
+		if d == nil {
+			delete(rect, name)
+			continue
+		}
+
+		switch d.(type) {
+		case Interval:
+			if tree.dimTypes[name] != DimTypeReal {
+				return errors.New(fmt.Sprintf("dim type error:%v", name))
+			}
+		case Scatters:
+			if tree.dimTypes[name] != DimTypeDiscrete {
+				return errors.New(fmt.Sprintf("dim type error:%v", name))
+			}
+		}
+	}
+
+	seg := &Segment{
+		Rect: rect.Clone(),
+		Data: mapset.NewSet(data),
+	}
+
+	tree.segments = append(tree.segments, seg)
+	return tree.root.Insert(seg)
 }
 
 func (tree *Tree) Remove(data interface{}) {

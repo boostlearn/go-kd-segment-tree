@@ -1,6 +1,7 @@
 package go_kd_segment_tree
 
 import (
+	"errors"
 	"fmt"
 	mapset "github.com/deckarep/golang-set"
 	"sort"
@@ -103,6 +104,64 @@ func (node *BinaryNode) SearchRect(r Rect) []interface{} {
 		return passResult
 	} else {
 		return mapset.NewSet(passResult...).Union(mapset.NewSet(childResult...)).ToSlice()
+	}
+}
+
+func (node *BinaryNode) Insert(seg *Segment) error {
+	if node == nil || seg == nil {
+		return errors.New("binary node is None")
+	}
+
+	if _, ok := seg.Rect[node.DimName]; ok == false {
+		if node.Pass != nil {
+			return node.Pass.Insert(seg)
+		} else {
+			node.Pass = &LeafNode{
+				Segments: []*Segment{seg},
+			}
+			return nil
+		}
+	}
+
+	if _, ok := seg.Rect[node.DimName].(Interval); ok == false {
+		return errors.New(fmt.Sprintf("wrong binary range: %v", node.DimName))
+	}
+
+	dimInterval := seg.Rect[node.DimName].(Interval)
+	if dimInterval[1].Smaller(node.Mid) {
+		if node.Left == nil {
+			node.Left = &LeafNode{
+				Segments: []*Segment{seg},
+			}
+			return nil
+		}
+		return node.Left.Insert(seg)
+	} else if dimInterval[0].Bigger(node.Mid) {
+		if node.Right == nil {
+			node.Right = &LeafNode{
+				Segments: []*Segment{seg},
+			}
+			return nil
+		}
+		return node.Right.Insert(seg)
+	} else {
+		if node.Left == nil {
+			node.Left = &LeafNode{
+				Segments: []*Segment{seg},
+			}
+			return nil
+		}
+		err := node.Left.Insert(seg)
+		if err != nil {
+			return err
+		}
+		if node.Right == nil {
+			node.Right = &LeafNode{
+				Segments: []*Segment{seg},
+			}
+			return nil
+		}
+		return node.Right.Insert(seg)
 	}
 }
 

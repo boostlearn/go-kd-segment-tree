@@ -1,6 +1,7 @@
 package go_kd_segment_tree
 
 import (
+	"errors"
 	"fmt"
 	mapset "github.com/deckarep/golang-set"
 )
@@ -23,6 +24,31 @@ func (node *LeafNode) Search(p Point) []interface{} {
 		}
 		return result.ToSlice()
 	}
+	return nil
+}
+
+func (node *LeafNode) SearchRect(r Rect) []interface{} {
+	if node == nil {
+		return nil
+	}
+	if node.Segments != nil {
+		var result = mapset.NewSet()
+		for _, seg := range node.Segments {
+			if seg.Rect.HasIntersect(r) {
+				result = result.Union(seg.Data)
+			}
+		}
+		return result.ToSlice()
+	}
+	return nil
+}
+
+func (node *LeafNode) Insert(seg *Segment) error {
+	if node == nil {
+		return errors.New("leaf node is nil")
+	}
+	node.Segments = append(node.Segments, seg)
+
 	return nil
 }
 

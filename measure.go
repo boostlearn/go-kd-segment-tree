@@ -220,6 +220,44 @@ func (rect Rect) Contains(p Point) bool {
 		}
 
 	}
+	return true
+}
 
+func (rect Rect) HasIntersect(s Rect) bool {
+	for name, d := range rect {
+		p := s[name]
+		if p == nil {
+			continue
+		}
+
+		switch d.(type) {
+		case Interval:
+			if sD, ok := p.(Interval); ok {
+				if d.(Interval).Contains(sD[0]) == false && d.(Interval).Contains(sD[1]) == false {
+					return false
+				}
+			} else {
+				return false
+			}
+		case Scatters:
+			if sD, ok := p.(Scatters); ok {
+				match := false
+				for _, i := range d.(Scatters) {
+					for _, j := range sD {
+						if i == j {
+							match = true
+							break
+						}
+					}
+				}
+				if match == false {
+					return false
+				}
+			} else {
+				return false
+			}
+		}
+
+	}
 	return true
 }

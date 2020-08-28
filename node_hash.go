@@ -1,6 +1,7 @@
 package go_kd_segment_tree
 
 import (
+	"errors"
 	"fmt"
 	mapset "github.com/deckarep/golang-set"
 	"strings"
@@ -84,6 +85,39 @@ func (node *HashNode) SearchRect(r Rect) []interface{} {
 	}
 }
 
+func (node *HashNode) Insert(seg *Segment) error {
+	if seg == nil || node == nil {
+		return errors.New("hash node is None")
+	}
+
+	if _, ok := seg.Rect[node.DimName]; ok == false {
+		if node.pass != nil {
+			return node.pass.Insert(seg)
+		} else {
+			node.pass = &LeafNode{
+				Segments: []*Segment{seg},
+			}
+			return nil
+		}
+	}
+
+	if _, ok := seg.Rect[node.DimName].(Scatters); ok == false {
+		return errors.New(fmt.Sprintf("wrong hash scatters: %v", node.DimName))
+	}
+
+	scatters := seg.Rect[node.DimName].(Scatters)
+
+	for _, x := range scatters {
+		if child, ok := node.child[x]; ok {
+			err := child.Insert(seg)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (node *HashNode) Dumps(prefix string) string {
 	if node == nil {
 		return ""
@@ -92,7 +126,7 @@ func (node *HashNode) Dumps(prefix string) string {
 	var msgs []string
 	msgs = append(msgs, fmt.Sprintf("%s -hnode{dim:%d, decreasePercent:%v}\n",
 		prefix, node.DimName, node.DecreasePercent))
-	if node.pass != nil  {
+	if node.pass != nil {
 		msgs = append(msgs, node.pass.Dumps(fmt.Sprintf("%v    %v:", prefix, "<PASS>")))
 	}
 	for childKey, child := range node.child {

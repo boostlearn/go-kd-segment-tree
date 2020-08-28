@@ -1,6 +1,7 @@
 package go_kd_segment_tree
 
 import (
+	"errors"
 	"fmt"
 	mapset "github.com/deckarep/golang-set"
 	"sort"
@@ -43,7 +44,7 @@ func (node *ConjunctionNode) Search(p Point) []interface{} {
 }
 
 func (node *ConjunctionNode) SearchRect(r Rect) []interface{} {
-	segCounter :=  make(map[int]int)
+	segCounter := make(map[int]int)
 	for dimName, d := range r {
 		if node.dimNode[dimName] == nil {
 			continue
@@ -64,6 +65,10 @@ func (node *ConjunctionNode) SearchRect(r Rect) []interface{} {
 	return result.ToSlice()
 }
 
+func (node *ConjunctionNode) Insert(seg *Segment) error {
+	return errors.New("conjunction node not support insert yet")
+}
+
 func NewConjunctionNode(tree *Tree,
 	segments []*Segment,
 	dimName interface{},
@@ -74,7 +79,7 @@ func NewConjunctionNode(tree *Tree,
 		Tree:            tree,
 		DimName:         dimName,
 		Level:           level,
-		segments:segments,
+		segments:        segments,
 		DecreasePercent: decreasePercent,
 		dimNode:         make(map[interface{}]ConjunctionDimNode),
 	}
@@ -150,7 +155,7 @@ func (dimNode *ConjunctionDimRealNode) searchPos(measure Measure) int {
 			return mid
 		} else if dimNode.splitPoints[mid+1].SmallerOrEqual(measure) {
 			start = mid + 1
-		} else if dimNode.splitPoints[mid].Bigger(measure){
+		} else if dimNode.splitPoints[mid].Bigger(measure) {
 			end = mid
 		} else {
 			break
@@ -167,7 +172,7 @@ func (dimNode *ConjunctionDimRealNode) MaxInvertNode() int {
 
 	maxNodeNum := 0
 	for _, nodes := range dimNode.segments {
-		if len(nodes)  > maxNodeNum {
+		if len(nodes) > maxNodeNum {
 			maxNodeNum = len(nodes)
 		}
 	}
@@ -241,13 +246,13 @@ func NewConjunctionRealNode(segments []*Segment, dimName interface{}) *Conjuncti
 			continue
 		}
 
-		pos  := dimNode.searchPos(seg.Rect[dimName].(Interval)[0])
+		pos := dimNode.searchPos(seg.Rect[dimName].(Interval)[0])
 		if pos < 0 || pos >= len(dimNode.splitPoints) {
 			continue
 		}
 
-		for i, m := range dimNode.splitPoints[pos:len(dimNode.splitPoints)-1] {
-			nextM := dimNode.splitPoints[i + pos +1]
+		for i, m := range dimNode.splitPoints[pos : len(dimNode.splitPoints)-1] {
+			nextM := dimNode.splitPoints[i+pos+1]
 			if seg.Rect[dimName] == nil {
 				continue
 			}
@@ -290,7 +295,7 @@ func (node *ConjunctionDimDiscreteNode) MaxInvertNode() int {
 
 	maxNodeNum := 0
 	for _, nodes := range node.segments {
-		if len(nodes)  > maxNodeNum {
+		if len(nodes) > maxNodeNum {
 			maxNodeNum = len(nodes)
 		}
 	}

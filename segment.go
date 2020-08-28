@@ -187,7 +187,7 @@ func getDiscreteDimSegmentsDecrease(segments []*Segment, dimName interface{}) (i
 		}
 	}
 
-	if hottestKeyMatchNum < len(segments) - len(dimSegments) {
+	if hottestKeyMatchNum < len(segments)-len(dimSegments) {
 		hottestKeyMatchNum = len(segments) - len(dimSegments)
 		maxMeasure = nil
 	}
